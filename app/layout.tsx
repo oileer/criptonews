@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Analytics } from "@vercel/analytics/react";
+import { GoogleAnalytics } from "@next/third-parties/google";
 import "./globals.css";
 
 const SITE_URL = "https://noticias.eullerlolato.com";
@@ -85,6 +86,7 @@ export default function RootLayout({
       <body>
         {children}
         <Analytics />
+        <GoogleAnalytics gaId="G-Y9C6ZKDGMQ" />
       </body>
     </html>
   );
