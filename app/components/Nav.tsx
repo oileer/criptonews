@@ -15,12 +15,17 @@ export default function Nav() {
       WebkitBackdropFilter: 'blur(16px)',
       borderBottom: '1px solid var(--card-border)',
     }}>
-      <div style={{ fontWeight: 700, fontSize: 17, letterSpacing: '-0.02em', textTransform: 'lowercase' }}>
+      <a href="/" style={{ fontWeight: 700, fontSize: 17, letterSpacing: '-0.02em', textTransform: 'lowercase', color: 'var(--text-primary)', textDecoration: 'none' }}>
         cripto<span className="gold-text">news</span>
-      </div>
+      </a>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: 32 }}>
-        <a href="#como-funciona" style={{ fontSize: 14, color: 'var(--text-muted)', textTransform: 'lowercase', transition: 'color 0.2s' }}
+        <a href="/edicoes" style={{ fontSize: 14, color: 'var(--text-muted)', textTransform: 'lowercase', transition: 'color 0.2s' }}
+          onMouseEnter={e => (e.currentTarget.style.color = 'var(--text-primary)')}
+          onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-muted)')}>
+          edições
+        </a>
+        <a href="/#como-funciona" style={{ fontSize: 14, color: 'var(--text-muted)', textTransform: 'lowercase', transition: 'color 0.2s' }}
           onMouseEnter={e => (e.currentTarget.style.color = 'var(--text-primary)')}
           onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-muted)')}>
           como funciona

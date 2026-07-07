@@ -1,0 +1,15 @@
+# Cripto News
+
+> Newsletter diária gratuita em português sobre o mercado de criptomoedas, publicada todo dia às 06h (horário de Brasília). Cada edição traz preços em tempo real de Bitcoin, Ethereum e Solana, índice Fear & Greed, as notícias mais importantes das últimas 24 horas e análise prática para traders brasileiros.
+
+## Conteúdo
+
+- [Todas as edições](https://noticias.eullerlolato.com/edicoes): arquivo diário, uma página por edição no formato /edicoes/AAAA-MM-DD
+- Cada edição contém: resumo do mercado do dia, destaques com análise, ponto de atenção para as próximas 24-48h
+- Dados de preço: CoinGecko (tempo real no momento da publicação) · Sentimento: Fear & Greed Index (alternative.me)
+
+## Sobre
+
+- Idioma: português do Brasil
+- Publicação: diária, ~06h BRT
+- Assinatura gratuita: https://noticias.eullerlolato.com

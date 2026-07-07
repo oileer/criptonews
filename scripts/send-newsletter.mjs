@@ -4,6 +4,9 @@
 // Env:  RESEND_API_KEY, RESEND_AUDIENCE_ID, ANTHROPIC_API_KEY (.env.local)
 
 import Anthropic from '@anthropic-ai/sdk'
+import fs from 'node:fs'
+import path from 'node:path'
+import { execSync } from 'node:child_process'
 
 const RESEND_API_KEY = process.env.RESEND_API_KEY
 const AUDIENCE_ID = process.env.RESEND_AUDIENCE_ID
@@ -41,11 +44,11 @@ async function gerarConteudo(dadosMercado) {
   const agora = new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' })
 
   const stream = client.messages.stream({
-    model: 'claude-sonnet-5',
+    // Haiku 4.5 para testes (mais barato); em produção troque por 'claude-sonnet-5'
+    // (Sonnet usa a busca 'web_search_20260209' e aceita thinking adaptive)
+    model: 'claude-haiku-4-5',
     max_tokens: 16000,
-    thinking: { type: 'adaptive' },
-    output_config: { effort: 'medium' },
-    tools: [{ type: 'web_search_20260209', name: 'web_search', max_uses: 5 }],
+    tools: [{ type: 'web_search_20250305', name: 'web_search', max_uses: 5 }],
     system: `Você é o redator da Cripto News, newsletter diária em português para traders brasileiros de criptomoedas. Tom direto, opinativo, com gíria de trader, sem hype. Sempre traduza a notícia em "o que isso significa pra quem opera".
 
 REGRAS INVIOLÁVEIS DE SAÍDA:
@@ -128,6 +131,36 @@ ${conteudo}
 </html>`
 }
 
+// Publica a edição no site: salva o JSON em content/edicoes e dá push (Vercel rebuilda)
+function publicarNoSite(conteudo) {
+  const dataIso = new Date()
+    .toLocaleDateString('en-CA', { timeZone: 'America/Sao_Paulo' }) // YYYY-MM-DD
+  const primeiroP = conteudo.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim()
+  const resumo = primeiroP.replace(/^CRIPTO NEWS — \S+\s*/, '').slice(0, 220)
+
+  const edicao = {
+    date: dataIso,
+    title: `Cripto News — ${hoje}: o mercado cripto do dia`,
+    description: resumo,
+    html: conteudo,
+  }
+
+  const dir = path.join(process.cwd(), 'content', 'edicoes')
+  fs.mkdirSync(dir, { recursive: true })
+  const arquivo = path.join(dir, `${dataIso}.json`)
+  fs.writeFileSync(arquivo, JSON.stringify(edicao, null, 2) + '\n')
+  console.log(`Edição salva em content/edicoes/${dataIso}.json`)
+
+  try {
+    execSync(`git add "${arquivo}"`, { stdio: 'pipe' })
+    execSync(`git commit -m "Edicao ${dataIso}"`, { stdio: 'pipe' })
+    execSync('git push origin main', { stdio: 'pipe' })
+    console.log('Publicado no site (git push feito, Vercel vai rebuildar).')
+  } catch (e) {
+    console.warn('Aviso: não consegui dar git push da edição —', e.message)
+  }
+}
+
 async function buscarContatos() {
   const res = await fetch(`https://api.resend.com/audiences/${AUDIENCE_ID}/contacts`, {
     headers: { Authorization: `Bearer ${RESEND_API_KEY}` },
@@ -172,6 +205,8 @@ async function main() {
     console.log('\n--- fim (nenhum e-mail enviado) ---')
     return
   }
+
+  publicarNoSite(conteudo)
 
   const contatos = await buscarContatos()
   console.log(`Enviando para ${contatos.length} contatos...`)

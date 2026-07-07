@@ -111,3 +111,7 @@ input { font-family: inherit; }
 @media (max-width: 768px) {
   .coins-bg { display: none; }
 }
+
+/* Conteúdo das edições do blog */
+.edicao-conteudo p { margin-bottom: 20px; }
+.edicao-conteudo b { color: var(--text-primary); }

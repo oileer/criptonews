@@ -1,10 +1,12 @@
 'use client'
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 
 const avatars = ['#f0b429', '#ff8a47', '#111', '#888']
 const initials = ['RF', 'CL', 'DM', 'LT']
 
 export default function Hero() {
+  const router = useRouter()
   const [email, setEmail] = useState('')
   const [status, setStatus] = useState<'idle' | 'loading' | 'done' | 'error'>('idle')
 
@@ -27,7 +29,12 @@ export default function Hero() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email }),
       })
-      setStatus(res.ok ? 'done' : 'error')
+      if (res.ok) {
+        setStatus('done')
+        setTimeout(() => router.push('/edicoes'), 1400)
+      } else {
+        setStatus('error')
+      }
     } catch {
       setStatus('error')
     }

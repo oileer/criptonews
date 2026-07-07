@@ -1,7 +1,9 @@
 'use client'
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 
 export default function CtaFinal() {
+  const router = useRouter()
   const [email, setEmail] = useState('')
   const [status, setStatus] = useState<'idle' | 'loading' | 'done' | 'error'>('idle')
 
@@ -15,7 +17,12 @@ export default function CtaFinal() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email }),
       })
-      setStatus(res.ok ? 'done' : 'error')
+      if (res.ok) {
+        setStatus('done')
+        setTimeout(() => router.push('/edicoes'), 1400)
+      } else {
+        setStatus('error')
+      }
     } catch {
       setStatus('error')
     }
