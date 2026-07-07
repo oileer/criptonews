@@ -7,7 +7,7 @@ import Anthropic from '@anthropic-ai/sdk'
 
 const RESEND_API_KEY = process.env.RESEND_API_KEY
 const AUDIENCE_ID = process.env.RESEND_AUDIENCE_ID
-const FROM = 'Cripto News <noticias@eullerlolato.com>'
+const FROM = 'Cripto News <news@noticias.eullerlolato.com>'
 const DRY_RUN = process.argv.includes('--dry-run')
 
 const hoje = new Date().toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' })
@@ -77,7 +77,7 @@ ${conteudo}
   </div>
   <div class="footer">
     <p>Você recebe porque se cadastrou na Cripto News.</p>
-    <p><a href="mailto:noticias@eullerlolato.com?subject=Cancelar%20inscricao">Cancelar inscrição</a></p>
+    <p><a href="mailto:news@noticias.eullerlolato.com?subject=Cancelar%20inscricao">Cancelar inscrição</a></p>
   </div>
 </div>
 </body>
