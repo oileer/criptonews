@@ -6,9 +6,12 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "send": "node --env-file=.env.local scripts/send-newsletter.mjs",
+    "send:dry": "node --env-file=.env.local scripts/send-newsletter.mjs --dry-run"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.110.0",
     "@react-three/drei": "^10.7.7",
     "@react-three/fiber": "^9.6.1",
     "@types/three": "^0.184.1",

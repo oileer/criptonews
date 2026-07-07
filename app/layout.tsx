@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 import "./globals.css";
 
-const URL = "https://criptonewsc.voyd.info";
+const SITE_URL = "https://criptonewsc.voyd.info";
 
 export const metadata: Metadata = {
-  metadataBase: new URL(URL),
+  metadataBase: new URL(SITE_URL),
   title: {
     default: "Cripto News — O mercado cripto em 5 minutos",
     template: "%s | Cripto News",
@@ -41,7 +41,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "pt_BR",
-    url: URL,
+    url: SITE_URL,
     siteName: "Cripto News",
     title: "Cripto News — O mercado cripto em 5 minutos",
     description:
@@ -63,7 +63,7 @@ export const metadata: Metadata = {
     images: ["/og-image.png"],
   },
   alternates: {
-    canonical: URL,
+    canonical: SITE_URL,
   },
   icons: {
     icon: "/favicon.ico",
