@@ -41,10 +41,11 @@ async function gerarConteudo(dadosMercado) {
   const agora = new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' })
 
   const stream = client.messages.stream({
-    model: 'claude-opus-4-8',
-    max_tokens: 64000,
+    model: 'claude-sonnet-5',
+    max_tokens: 16000,
     thinking: { type: 'adaptive' },
-    tools: [{ type: 'web_search_20260209', name: 'web_search', max_uses: 8 }],
+    output_config: { effort: 'medium' },
+    tools: [{ type: 'web_search_20260209', name: 'web_search', max_uses: 5 }],
     system: `Você é o redator da Cripto News, newsletter diária em português para traders brasileiros de criptomoedas. Tom direto, opinativo, com gíria de trader, sem hype. Sempre traduza a notícia em "o que isso significa pra quem opera".
 
 REGRAS INVIOLÁVEIS DE SAÍDA:
