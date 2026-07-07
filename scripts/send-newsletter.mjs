@@ -12,8 +12,33 @@ const DRY_RUN = process.argv.includes('--dry-run')
 
 const hoje = new Date().toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' })
 
-async function gerarConteudo() {
+// Dados de mercado em tempo real — a IA fica proibida de citar preços de outra fonte
+async function buscarDadosMercado() {
+  const [cg, fg] = await Promise.all([
+    fetch(
+      'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=bitcoin,ethereum,solana&price_change_percentage=24h,7d'
+    ).then((r) => r.json()),
+    fetch('https://api.alternative.me/fng/?limit=2').then((r) => r.json()),
+  ])
+
+  const linhas = cg.map(
+    (m) =>
+      `${m.symbol.toUpperCase()}: US$ ${m.current_price.toLocaleString('en-US')} ` +
+      `(24h: ${m.price_change_percentage_24h_in_currency?.toFixed(2)}% | ` +
+      `7d: ${m.price_change_percentage_7d_in_currency?.toFixed(2)}%) | ` +
+      `máx 24h: US$ ${m.high_24h.toLocaleString('en-US')} | mín 24h: US$ ${m.low_24h.toLocaleString('en-US')}`
+  )
+  const [fgHoje, fgOntem] = fg.data
+  linhas.push(
+    `Fear & Greed: ${fgHoje.value} (${fgHoje.value_classification}) | ontem: ${fgOntem.value} (${fgOntem.value_classification})`
+  )
+  return linhas.join('\n')
+}
+
+async function gerarConteudo(dadosMercado) {
   const client = new Anthropic()
+
+  const agora = new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' })
 
   const stream = client.messages.stream({
     model: 'claude-opus-4-8',
@@ -24,7 +49,17 @@ async function gerarConteudo() {
     messages: [
       {
         role: 'user',
-        content: `Pesquise as notícias mais importantes do mercado cripto das últimas 24 horas (Bitcoin, Ethereum, altcoins, regulação, instituições, ETFs, funding rate) e escreva a edição de hoje (${hoje}) da Cripto News.
+        content: `Agora são ${agora} (horário de Brasília).
+
+DADOS DE MERCADO EM TEMPO REAL (fonte oficial — use SOMENTE estes números para preços, variações e sentimento; NUNCA cite preço vindo de notícia ou busca):
+${dadosMercado}
+
+Pesquise as notícias mais importantes do mercado cripto das ÚLTIMAS 24 HORAS (Bitcoin, Ethereum, altcoins, regulação, instituições, ETFs, funding rate). Regras da pesquisa:
+- Verifique a data de publicação de cada notícia; descarte qualquer coisa com mais de 24-36h ou sem data clara
+- Notícias de preço/cotação devem ser ignoradas — os preços válidos são só os dos dados acima
+- Se uma notícia contradisser os dados de mercado acima, os dados acima prevalecem
+
+Escreva a edição de hoje (${hoje}) da Cripto News.
 
 Estrutura obrigatória (responda APENAS com o HTML interno, sem \`\`\`, sem <html>/<body>):
 <p><b>CRIPTO NEWS — ${hoje}</b></p>
@@ -115,8 +150,12 @@ async function main() {
   if (!RESEND_API_KEY || !AUDIENCE_ID) throw new Error('RESEND_API_KEY / RESEND_AUDIENCE_ID ausentes')
   if (!process.env.ANTHROPIC_API_KEY) throw new Error('ANTHROPIC_API_KEY ausente')
 
-  console.log(`Gerando edição de ${hoje}...`)
-  const conteudo = await gerarConteudo()
+  console.log('Buscando dados de mercado em tempo real...')
+  const dadosMercado = await buscarDadosMercado()
+  console.log(dadosMercado)
+
+  console.log(`\nGerando edição de ${hoje}...`)
+  const conteudo = await gerarConteudo(dadosMercado)
   const html = montarHtml(conteudo)
 
   if (DRY_RUN) {
