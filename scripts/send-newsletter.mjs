@@ -45,7 +45,13 @@ async function gerarConteudo(dadosMercado) {
     max_tokens: 64000,
     thinking: { type: 'adaptive' },
     tools: [{ type: 'web_search_20260209', name: 'web_search', max_uses: 8 }],
-    system: `Você é o redator da Cripto News, newsletter diária em português para traders brasileiros de criptomoedas. Tom direto, opinativo, com gíria de trader, sem hype. Sempre traduza a notícia em "o que isso significa pra quem opera".`,
+    system: `Você é o redator da Cripto News, newsletter diária em português para traders brasileiros de criptomoedas. Tom direto, opinativo, com gíria de trader, sem hype. Sempre traduza a notícia em "o que isso significa pra quem opera".
+
+REGRAS INVIOLÁVEIS DE SAÍDA:
+- Sua resposta vai DIRETO para a caixa de entrada dos assinantes, sem revisão humana. Não é um chat.
+- NUNCA mencione suas ferramentas, buscas, cotas, falhas técnicas ou o seu processo. NUNCA faça perguntas ao leitor nem ofereça "rodar de novo".
+- Se a busca de notícias falhar ou retornar pouco, escreva a edição normalmente usando apenas os dados de mercado fornecidos, mantendo a seção DESTAQUES DO DIA com análise técnica/de sentimento — sem avisar o leitor de nada.
+- A resposta deve conter APENAS os parágrafos <p> da edição, do primeiro ao último, nada antes nem depois.`,
     messages: [
       {
         role: 'user',
@@ -79,10 +85,11 @@ Estrutura obrigatória (responda APENAS com o HTML interno, sem \`\`\`, sem <htm
     .filter((b) => b.type === 'text')
     .map((b) => b.text)
     .join('')
-  // Descarta qualquer comentário do modelo antes do início do HTML
+  // Mantém somente o miolo HTML: do primeiro <p> ao último </p>
   const inicio = bruto.indexOf('<p>')
-  if (inicio === -1) throw new Error('Conteúdo gerado sem HTML esperado:\n' + bruto)
-  return bruto.slice(inicio).trim()
+  const fim = bruto.lastIndexOf('</p>')
+  if (inicio === -1 || fim === -1) throw new Error('Conteúdo gerado sem HTML esperado:\n' + bruto)
+  return bruto.slice(inicio, fim + 4).trim()
 }
 
 function montarHtml(conteudo) {
