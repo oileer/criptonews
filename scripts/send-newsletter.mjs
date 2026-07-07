@@ -40,13 +40,14 @@ Estrutura obrigatória (responda APENAS com o HTML interno, sem \`\`\`, sem <htm
 
   const msg = await stream.finalMessage()
   if (msg.stop_reason === 'refusal') throw new Error('Geração recusada pela API')
-  const texto = msg.content
+  const bruto = msg.content
     .filter((b) => b.type === 'text')
     .map((b) => b.text)
     .join('')
-    .trim()
-  if (!texto.includes('<p>')) throw new Error('Conteúdo gerado sem HTML esperado:\n' + texto)
-  return texto
+  // Descarta qualquer comentário do modelo antes do início do HTML
+  const inicio = bruto.indexOf('<p>')
+  if (inicio === -1) throw new Error('Conteúdo gerado sem HTML esperado:\n' + bruto)
+  return bruto.slice(inicio).trim()
 }
 
 function montarHtml(conteudo) {
