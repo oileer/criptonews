@@ -42,11 +42,36 @@ Um pipeline, quatro canais: o mesmo robô que envia o e-mail publica a edição 
 - Audiences separadas no Resend: "Cripto News" (PT) e "Crypto News EN" (b0478ab8-721f-4ffc-be3f-0f498ee43f6a)
 - Robô gera e envia as duas edições por dia; blogs em /edicoes e /en/editions
 
-## Próximos passos
+## Status
 - [x] Blog de edições com SEO/GEO (PT + EN, hreflang, sitemap, llms.txt)
 - [x] Redirect pós-cadastro pro blog (por idioma)
 - [x] GA4 (G-Z5SYK2MJLS) + Vercel Analytics
 - [x] Robô bilíngue (PT + EN)
-- [ ] Deploy Vercel + apontar noticias.eullerlolato.com
-- [ ] Agendar envio diário 06h (ver SETUP.md)
-- [ ] Automação de postagem: Instagram e YouTube (próxima fase)
+- [x] Deploy Vercel em https://noticias.eullerlolato.com (07/07/2026)
+
+## PRÓXIMAS AÇÕES (noite de 07/07)
+
+### 1. Consertar o formulário em produção (URGENTE — está quebrado)
+Vercel → projeto → Settings → Environment Variables → adicionar nos 3 ambientes:
+- `RESEND_API_KEY` (a mesma do .env.local)
+- `RESEND_AUDIENCE_ID` = e1e7c329-0033-497f-a68a-e37e8b393a5f
+- `RESEND_AUDIENCE_ID_EN` = b0478ab8-721f-4ffc-be3f-0f498ee43f6a
+Depois: Deployments → Redeploy. Testar cadastro na home PT e na /en.
+
+### 2. Créditos Anthropic
+Recarregar em platform.claude.com → Plans & Billing (robô está sem créditos).
+Modelo atual: Haiku 4.5 (~US$ 0,05-0,08/dia as 2 edições).
+
+### 3. Configurar a CPU de casa (ver SETUP.md — passo a passo completo)
+- Clonar repo, npm install, criar .env.local (4 keys)
+- Autenticar git (gh auth login) — o robô dá push das edições
+- `npm run send:dry` pra validar → `npm run send` pra testar de verdade
+- Agendar 06h: comando schtasks pronto no SETUP.md
+
+### 4. Registrar o site nos buscadores (SEO)
+- Google Search Console: adicionar noticias.eullerlolato.com, enviar sitemap.xml
+- Bing Webmaster Tools: idem (alimenta ChatGPT/Copilot — importante pro GEO)
+
+### 5. Próxima fase (com o Claude)
+Automação de posts Instagram + YouTube: roteiro do Short/Reels gerado junto
+com a edição diária → pipeline de publicação.
