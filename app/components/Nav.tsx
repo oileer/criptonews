@@ -1,6 +1,8 @@
 'use client'
+import { dict, type Lang } from '@/lib/i18n'
 
-export default function Nav() {
+export default function Nav({ lang = 'pt' }: { lang?: Lang }) {
+  const t = dict[lang]
   const scrollToForm = () => {
     document.querySelector('#form-hero')?.scrollIntoView({ behavior: 'smooth' })
   }
@@ -15,23 +17,28 @@ export default function Nav() {
       WebkitBackdropFilter: 'blur(16px)',
       borderBottom: '1px solid var(--card-border)',
     }}>
-      <a href="/" style={{ fontWeight: 700, fontSize: 17, letterSpacing: '-0.02em', textTransform: 'lowercase', color: 'var(--text-primary)', textDecoration: 'none' }}>
+      <a href={t.homeHref} style={{ fontWeight: 700, fontSize: 17, letterSpacing: '-0.02em', textTransform: 'lowercase', color: 'var(--text-primary)', textDecoration: 'none' }}>
         cripto<span className="gold-text">news</span>
       </a>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: 32 }}>
-        <a href="/edicoes" style={{ fontSize: 14, color: 'var(--text-muted)', textTransform: 'lowercase', transition: 'color 0.2s' }}
+        <a href={t.editionsHref} style={{ fontSize: 14, color: 'var(--text-muted)', textTransform: 'lowercase', transition: 'color 0.2s' }}
           onMouseEnter={e => (e.currentTarget.style.color = 'var(--text-primary)')}
           onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-muted)')}>
-          edições
+          {t.navEditions}
         </a>
-        <a href="/#como-funciona" style={{ fontSize: 14, color: 'var(--text-muted)', textTransform: 'lowercase', transition: 'color 0.2s' }}
+        <a href={t.navHowHref} style={{ fontSize: 14, color: 'var(--text-muted)', textTransform: 'lowercase', transition: 'color 0.2s' }}
           onMouseEnter={e => (e.currentTarget.style.color = 'var(--text-primary)')}
           onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-muted)')}>
-          como funciona
+          {t.navHow}
+        </a>
+        <a href={lang === 'pt' ? '/en' : '/'} style={{ fontSize: 14, color: 'var(--text-muted)', transition: 'color 0.2s' }}
+          onMouseEnter={e => (e.currentTarget.style.color = 'var(--text-primary)')}
+          onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-muted)')}>
+          {lang === 'pt' ? '🇺🇸 EN' : '🇧🇷 PT'}
         </a>
         <button onClick={scrollToForm} className="btn-gold" style={{ padding: '10px 20px', fontSize: 14, borderRadius: 999 }}>
-          inscreva-se
+          {t.navCta}
         </button>
       </div>
     </nav>

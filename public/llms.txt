@@ -1,15 +1,18 @@
-# Cripto News
+# Cripto News / Crypto News
 
-> Newsletter diária gratuita em português sobre o mercado de criptomoedas, publicada todo dia às 06h (horário de Brasília). Cada edição traz preços em tempo real de Bitcoin, Ethereum e Solana, índice Fear & Greed, as notícias mais importantes das últimas 24 horas e análise prática para traders brasileiros.
+> Newsletter diária gratuita sobre o mercado de criptomoedas, publicada todo dia às 06h (horário de Brasília) em português e inglês. Cada edição traz preços em tempo real de Bitcoin, Ethereum e Solana, índice Fear & Greed, as notícias mais importantes das últimas 24 horas e análise prática para traders.
 
-## Conteúdo
+> Free daily crypto-market newsletter, published every day at 6am BRT in Portuguese and English. Each edition includes real-time Bitcoin, Ethereum and Solana prices, the Fear & Greed index, the most important news of the last 24 hours and practical analysis for traders.
 
-- [Todas as edições](https://noticias.eullerlolato.com/edicoes): arquivo diário, uma página por edição no formato /edicoes/AAAA-MM-DD
-- Cada edição contém: resumo do mercado do dia, destaques com análise, ponto de atenção para as próximas 24-48h
-- Dados de preço: CoinGecko (tempo real no momento da publicação) · Sentimento: Fear & Greed Index (alternative.me)
+## Conteúdo / Content
 
-## Sobre
+- [Edições em português](https://noticias.eullerlolato.com/edicoes): arquivo diário, uma página por edição em /edicoes/AAAA-MM-DD
+- [English editions](https://noticias.eullerlolato.com/en/editions): daily archive, one page per edition at /en/editions/YYYY-MM-DD
+- Cada edição / each edition: resumo do mercado, destaques com análise, ponto de atenção 24-48h
+- Preços / prices: CoinGecko (real time at publication) · Sentimento / sentiment: Fear & Greed Index (alternative.me)
 
-- Idioma: português do Brasil
-- Publicação: diária, ~06h BRT
-- Assinatura gratuita: https://noticias.eullerlolato.com
+## Sobre / About
+
+- Idiomas / languages: pt-BR, en-US
+- Publicação / published: diária ~06h BRT / daily ~9am UTC
+- Assinatura gratuita / free signup: https://noticias.eullerlolato.com (PT) · https://noticias.eullerlolato.com/en (EN)

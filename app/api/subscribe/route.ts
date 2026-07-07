@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 
 const RESEND_API_KEY = process.env.RESEND_API_KEY!
 const AUDIENCE_ID = process.env.RESEND_AUDIENCE_ID!
+const AUDIENCE_ID_EN = process.env.RESEND_AUDIENCE_ID_EN!
 
 // Rate limit simples em memória — por IP, máx 3 tentativas por hora
 const attempts = new Map<string, { count: number; ts: number }>()
@@ -35,7 +36,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Muitas tentativas. Tente mais tarde.' }, { status: 429 })
   }
 
-  let body: { email?: string }
+  let body: { email?: string; lang?: string }
   try {
     body = await req.json()
   } catch {
@@ -48,12 +49,14 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'E-mail inválido' }, { status: 400 })
   }
 
-  if (!RESEND_API_KEY || !AUDIENCE_ID) {
+  const audienceId = body.lang === 'en' ? AUDIENCE_ID_EN : AUDIENCE_ID
+
+  if (!RESEND_API_KEY || !audienceId) {
     console.error('Env vars ausentes')
     return NextResponse.json({ error: 'Erro de configuração' }, { status: 500 })
   }
 
-  const res = await fetch(`https://api.resend.com/audiences/${AUDIENCE_ID}/contacts`, {
+  const res = await fetch(`https://api.resend.com/audiences/${audienceId}/contacts`, {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${RESEND_API_KEY}`,

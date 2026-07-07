@@ -1,11 +1,13 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { dict, type Lang } from '@/lib/i18n'
 
 const avatars = ['#f0b429', '#ff8a47', '#111', '#888']
 const initials = ['RF', 'CL', 'DM', 'LT']
 
-export default function Hero() {
+export default function Hero({ lang = 'pt' }: { lang?: Lang }) {
+  const t = dict[lang]
   const router = useRouter()
   const [email, setEmail] = useState('')
   const [status, setStatus] = useState<'idle' | 'loading' | 'done' | 'error'>('idle')
@@ -27,11 +29,11 @@ export default function Hero() {
       const res = await fetch('/api/subscribe', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ email, lang }),
       })
       if (res.ok) {
         setStatus('done')
-        setTimeout(() => router.push('/edicoes'), 1400)
+        setTimeout(() => router.push(t.editionsHref), 1400)
       } else {
         setStatus('error')
       }
@@ -63,7 +65,7 @@ export default function Hero() {
           fontSize: 13, color: 'var(--text-muted)', marginBottom: 32,
         }}>
           <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--gold)', display: 'inline-block', boxShadow: '0 0 6px var(--gold)' }} />
-          newsletter · cripto · todo dia às 06h
+          {t.badge}
         </div>
 
         {/* Headline */}
@@ -76,8 +78,8 @@ export default function Hero() {
           textTransform: 'lowercase',
           color: 'var(--text-primary)',
         }}>
-          o mercado cripto<br />
-          <span className="gold-text">em 5 minutos.</span>
+          {t.headline1}<br />
+          <span className="gold-text">{t.headline2}</span>
         </h1>
 
         {/* Subtítulo */}
@@ -88,8 +90,8 @@ export default function Hero() {
           margin: '0 auto 40px',
           lineHeight: 1.55,
         }}>
-          as principais notícias do mercado cripto, diariamente no seu email.{' '}
-          <strong style={{ color: 'var(--text-primary)' }}>totalmente grátis.</strong>
+          {t.sub}{' '}
+          <strong style={{ color: 'var(--text-primary)' }}>{t.subStrong}</strong>
         </p>
 
         {/* Form */}
@@ -99,7 +101,7 @@ export default function Hero() {
             background: 'var(--white)', border: '1px solid var(--card-border)',
             borderRadius: 999, color: '#22c55e', fontWeight: 600, fontSize: 16,
           }}>
-            ✓ você está na lista. até amanhã às 06h!
+            {t.done}
           </div>
         ) : (
           <form id="form-hero" className="fade d3" onSubmit={handleSubmit} style={{
@@ -117,7 +119,7 @@ export default function Hero() {
             </svg>
             <input
               type="email"
-              placeholder="coloque seu email"
+              placeholder={t.placeholder}
               value={email}
               onChange={e => setEmail(e.target.value)}
               required
@@ -129,13 +131,13 @@ export default function Hero() {
               className="btn-gold"
               style={{ padding: '12px 24px', fontSize: 15, borderRadius: 999, whiteSpace: 'nowrap' }}
             >
-              {status === 'loading' ? 'enviando...' : 'inscreva-se'}
+              {status === 'loading' ? t.buttonLoading : t.button}
             </button>
           </form>
         )}
 
         {status === 'error' && (
-          <p style={{ marginTop: 12, fontSize: 13, color: '#e05c5c' }}>erro ao cadastrar. tente novamente.</p>
+          <p style={{ marginTop: 12, fontSize: 13, color: '#e05c5c' }}>{t.error}</p>
         )}
 
         {/* Social proof */}
@@ -154,7 +156,7 @@ export default function Hero() {
             ))}
           </div>
           <p style={{ fontSize: 14, color: 'var(--text-secondary)' }}>
-            <strong style={{ color: 'var(--text-primary)' }}>+1.200 traders</strong> já recebem toda manhã
+            <strong style={{ color: 'var(--text-primary)' }}>{t.socialProofStrong}</strong> {t.socialProof}
           </p>
         </div>
       </div>

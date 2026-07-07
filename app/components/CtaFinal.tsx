@@ -1,8 +1,10 @@
 'use client'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { dict, type Lang } from '@/lib/i18n'
 
-export default function CtaFinal() {
+export default function CtaFinal({ lang = 'pt' }: { lang?: Lang }) {
+  const t = dict[lang]
   const router = useRouter()
   const [email, setEmail] = useState('')
   const [status, setStatus] = useState<'idle' | 'loading' | 'done' | 'error'>('idle')
@@ -15,11 +17,11 @@ export default function CtaFinal() {
       const res = await fetch('/api/subscribe', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ email, lang }),
       })
       if (res.ok) {
         setStatus('done')
-        setTimeout(() => router.push('/edicoes'), 1400)
+        setTimeout(() => router.push(t.editionsHref), 1400)
       } else {
         setStatus('error')
       }
@@ -49,7 +51,7 @@ export default function CtaFinal() {
           pointerEvents: 'none',
         }} />
 
-        <p className="eyebrow" style={{ marginBottom: 16 }}>comece agora</p>
+        <p className="eyebrow" style={{ marginBottom: 16 }}>{t.ctaEyebrow}</p>
         <h2 style={{
           fontSize: 'clamp(32px, 5vw, 56px)',
           fontWeight: 700,
@@ -59,12 +61,12 @@ export default function CtaFinal() {
           color: 'var(--text-primary)',
           marginBottom: 16,
         }}>
-          próxima edição:<br />
-          <span className="gold-text">amanhã às 06h.</span>
+          {t.ctaTitle1}<br />
+          <span className="gold-text">{t.ctaTitle2}</span>
         </h2>
 
         <p style={{ fontSize: 17, color: 'var(--text-secondary)', marginBottom: 36, lineHeight: 1.55 }}>
-          junte-se a traders que já começam o dia informados — sem abrir twitter, sem grupo de whatsapp.
+          {t.ctaSub}
         </p>
 
         {status === 'done' ? (
@@ -73,7 +75,7 @@ export default function CtaFinal() {
             background: 'var(--white)', border: '1px solid var(--card-border)',
             borderRadius: 999, color: '#22c55e', fontWeight: 600, fontSize: 16,
           }}>
-            ✓ você está na lista. até amanhã às 06h!
+            {t.done}
           </div>
         ) : (
           <form onSubmit={handleSubmit} style={{
@@ -88,7 +90,7 @@ export default function CtaFinal() {
           }}>
             <input
               type="email"
-              placeholder="coloque seu email"
+              placeholder={t.placeholder}
               value={email}
               onChange={e => setEmail(e.target.value)}
               required
@@ -100,17 +102,17 @@ export default function CtaFinal() {
               className="btn-gold"
               style={{ padding: '12px 24px', fontSize: 15, borderRadius: 999, whiteSpace: 'nowrap' }}
             >
-              {status === 'loading' ? 'enviando...' : 'inscreva-se'}
+              {status === 'loading' ? t.buttonLoading : t.button}
             </button>
           </form>
         )}
 
         {status === 'error' && (
-          <p style={{ marginTop: 12, fontSize: 13, color: '#e05c5c' }}>erro ao cadastrar. tente novamente.</p>
+          <p style={{ marginTop: 12, fontSize: 13, color: '#e05c5c' }}>{t.error}</p>
         )}
 
         <p style={{ marginTop: 16, fontSize: 13, color: 'var(--text-muted)' }}>
-          gratuito · sem spam · cancele quando quiser
+          {t.ctaFoot}
         </p>
       </div>
     </section>

@@ -66,6 +66,7 @@ export const metadata: Metadata = {
   },
   alternates: {
     canonical: SITE_URL,
+    languages: { "pt-BR": "/", en: "/en" },
   },
   icons: {
     icon: "/favicon.ico",

@@ -1,28 +1,10 @@
 'use client'
 import { useRef, useState } from 'react'
+import { dict, type Lang } from '@/lib/i18n'
 
-const steps = [
-  {
-    num: '1.',
-    title: 'se inscreva',
-    desc: 'coloque seu email e clique no botão para se inscrever gratuitamente',
-    gif: '/gifs/email.gif',
-  },
-  {
-    num: '2.',
-    title: 'prepare um café',
-    desc: 'todo dia às 06h, a edição chega no seu email. abre, lê em 5 minutos e já sabe onde o mercado dormiu',
-    gif: '/gifs/cafe.gif',
-  },
-  {
-    num: '3.',
-    title: 'opere com vantagem',
-    desc: 'com o contexto certo, você entra no dia com clareza — sem ficar atrás do mercado',
-    gif: '/gifs/chart.gif',
-  },
-]
-
-export default function HowItWorks() {
+export default function HowItWorks({ lang = 'pt' }: { lang?: Lang }) {
+  const t = dict[lang]
+  const steps = t.steps
   const [active, setActive] = useState(0)
   const sliderRef = useRef<HTMLDivElement>(null)
 
@@ -39,10 +21,10 @@ export default function HowItWorks() {
       <div style={{ maxWidth: 900, margin: '0 auto' }}>
 
         <div style={{ textAlign: 'center', marginBottom: 48 }}>
-          <p className="eyebrow">como funciona</p>
+          <p className="eyebrow">{t.howEyebrow}</p>
           <h2 className="section-title">
-            você mais atualizado{' '}
-            <span className="gold-text">em 5 minutos</span>
+            {t.howTitle1}{' '}
+            <span className="gold-text">{t.howTitle2}</span>
           </h2>
         </div>
 

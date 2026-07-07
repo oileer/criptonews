@@ -37,9 +37,16 @@ Um pipeline, quatro canais: o mesmo robô que envia o e-mail publica a edição 
 ### 6. Indicação (quando tiver centenas de assinantes)
 - "Indique 3 amigos e ganhe X"
 
+## Global (EN)
+- Site bilíngue: `/` (pt-BR) e `/en` (en-US) com hreflang cruzado em todas as páginas
+- Audiences separadas no Resend: "Cripto News" (PT) e "Crypto News EN" (b0478ab8-721f-4ffc-be3f-0f498ee43f6a)
+- Robô gera e envia as duas edições por dia; blogs em /edicoes e /en/editions
+
 ## Próximos passos
-- [x] Blog de edições com SEO/GEO
-- [x] Redirect pós-cadastro pro blog
+- [x] Blog de edições com SEO/GEO (PT + EN, hreflang, sitemap, llms.txt)
+- [x] Redirect pós-cadastro pro blog (por idioma)
+- [x] GA4 (G-Z5SYK2MJLS) + Vercel Analytics
+- [x] Robô bilíngue (PT + EN)
 - [ ] Deploy Vercel + apontar noticias.eullerlolato.com
-- [ ] Automação de postagem: Instagram, YouTube e site
-- [ ] Agendar envio diário 06h (Task Scheduler na CPU de casa)
+- [ ] Agendar envio diário 06h (ver SETUP.md)
+- [ ] Automação de postagem: Instagram e YouTube (próxima fase)
