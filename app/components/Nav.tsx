@@ -1,5 +1,6 @@
 'use client'
 import { dict, type Lang } from '@/lib/i18n'
+import Logo from './Logo'
 
 export default function Nav({ lang = 'pt' }: { lang?: Lang }) {
   const t = dict[lang]
@@ -17,7 +18,8 @@ export default function Nav({ lang = 'pt' }: { lang?: Lang }) {
       WebkitBackdropFilter: 'blur(16px)',
       borderBottom: '1px solid var(--card-border)',
     }}>
-      <a href={t.homeHref} style={{ fontWeight: 700, fontSize: 17, letterSpacing: '-0.02em', textTransform: 'lowercase', color: 'var(--text-primary)', textDecoration: 'none' }}>
+      <a href={t.homeHref} style={{ display: 'flex', alignItems: 'center', gap: 10, fontWeight: 700, fontSize: 17, letterSpacing: '-0.02em', textTransform: 'lowercase', color: 'var(--text-primary)', textDecoration: 'none' }}>
+        <Logo size={28} />
         cripto<span className="gold-text">news</span>
       </a>
 

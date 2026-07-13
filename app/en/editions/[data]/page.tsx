@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import Nav from '../../../components/Nav'
+import PartnerCta from '../../../components/PartnerCta'
 import CtaFinal from '../../../components/CtaFinal'
 import { listarEdicoes, buscarEdicao, formatarData } from '@/lib/edicoes'
 
@@ -76,6 +77,7 @@ export default async function EditionPage({ params }: { params: Promise<{ data: 
           dangerouslySetInnerHTML={{ __html: edicao.html }}
         />
       </article>
+      <PartnerCta lang="en" />
       <CtaFinal lang="en" />
     </main>
   )

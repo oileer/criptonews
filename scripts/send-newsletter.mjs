@@ -156,6 +156,9 @@ function montarHtml(lang, conteudo) {
   .header p { color: #666; font-size: 13px; margin: 6px 0 0; }
   .content { color: #e0e0e0; line-height: 1.9; font-size: 15px; }
   .content b { color: #f0b429; }
+  .sponsor { border-top: 1px solid #333; margin-top: 32px; padding-top: 24px; text-align: center; }
+  .sponsor p { color: #999; font-size: 13px; margin: 0 0 12px; line-height: 1.6; }
+  .sponsor a.btn { display: inline-block; background: linear-gradient(to right, #f0b429, #ff8a47); color: #111; font-weight: bold; padding: 12px 24px; border-radius: 999px; text-decoration: none; font-size: 14px; }
   .footer { border-top: 1px solid #333; margin-top: 32px; padding-top: 16px; color: #555; font-size: 12px; text-align: center; }
   .footer a { color: #555; }
 </style>
@@ -168,6 +171,12 @@ function montarHtml(lang, conteudo) {
   </div>
   <div class="content">
 ${conteudo}
+  </div>
+  <div class="sponsor">
+    <p>${lang === 'en'
+      ? '<b style="color:#f0b429">e-trade.ai</b> — send your chart screenshot and get bias, support/resistance levels and a trade plan, in seconds.'
+      : '<b style="color:#f0b429">e-trade.ai</b> — manda o print do gráfico e recebe viés, níveis e plano de operação, em segundos.'}</p>
+    <a class="btn" href="https://etradeai.eullerlolato.com">${lang === 'en' ? 'try e-trade.ai' : 'testar o e-trade.ai'}</a>
   </div>
   <div class="footer">
     <p>${cfg.footer}</p>

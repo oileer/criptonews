@@ -2,6 +2,7 @@
 import Nav from './components/Nav'
 import Hero from './components/Hero'
 import HowItWorks from './components/HowItWorks'
+import PartnerCta from './components/PartnerCta'
 import CtaFinal from './components/CtaFinal'
 
 export default function Home() {
@@ -10,6 +11,7 @@ export default function Home() {
       <Nav />
       <Hero />
       <HowItWorks />
+      <PartnerCta />
       <CtaFinal />
       <footer style={{
         borderTop: '1px solid var(--card-border)',

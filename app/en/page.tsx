@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import Nav from '../components/Nav'
 import Hero from '../components/Hero'
 import HowItWorks from '../components/HowItWorks'
+import PartnerCta from '../components/PartnerCta'
 import CtaFinal from '../components/CtaFinal'
 import { dict } from '@/lib/i18n'
 
@@ -39,6 +40,7 @@ export default function HomeEn() {
       <Nav lang="en" />
       <Hero lang="en" />
       <HowItWorks lang="en" />
+      <PartnerCta lang="en" />
       <CtaFinal lang="en" />
       <footer style={{
         borderTop: '1px solid var(--card-border)',
