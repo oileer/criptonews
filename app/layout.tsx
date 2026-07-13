@@ -68,10 +68,6 @@ export const metadata: Metadata = {
     canonical: SITE_URL,
     languages: { "pt-BR": "/", en: "/en" },
   },
-  icons: {
-    icon: "/favicon.ico",
-    apple: "/apple-touch-icon.png",
-  },
 };
 
 export default function RootLayout({
