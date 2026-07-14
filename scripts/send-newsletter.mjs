@@ -91,8 +91,35 @@ Required structure (reply ONLY with the inner HTML, no \`\`\`, no <html>/<body>)
   },
 }
 
-// Dados de mercado em tempo real — a IA fica proibida de citar preços de outra fonte
-async function buscarDadosMercado() {
+// Dados de mercado em tempo real — a IA fica proibida de citar preços de outra fonte.
+// Fonte primária: API do e-trade.ai no kody (dados ricos + Termômetro + análise do
+// analista-chefe IA). Se a API estiver fora, cai no fetch direto (fallback).
+const ETRADE_API = process.env.ETRADE_API_URL || 'http://100.123.103.94:8787'
+
+async function buscarDadosMercado(lang = 'pt') {
+  try {
+    const res = await fetch(`${ETRADE_API}/v1/newsletter/draft?lang=${lang}`, {
+      signal: AbortSignal.timeout(120000),
+    })
+    if (!res.ok) throw new Error(`API e-trade ${res.status}`)
+    const draft = await res.json()
+    if (!draft.dados) throw new Error('draft sem dados')
+    let dados = draft.dados
+    if (draft.anomalias?.length)
+      dados += '\n\nSINAIS FORA DO PADRÃO detectados pelo radar (use se relevante):\n- ' + draft.anomalias.join('\n- ')
+    if (draft.analiseHtml)
+      dados +=
+        '\n\nANÁLISE DO ANALISTA-CHEFE do e-trade.ai (use como base técnica; reescreva no tom da newsletter, não copie):\n' +
+        draft.analiseHtml.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim()
+    console.log('  (dados via API e-trade.ai — Termômetro ' + (draft.termometro?.score ?? '?') + '/100)')
+    return dados
+  } catch (e) {
+    console.warn('  API e-trade.ai indisponível (' + e.message + ') — usando fetch direto')
+    return buscarDadosMercadoDireto()
+  }
+}
+
+async function buscarDadosMercadoDireto() {
   const [cg, fg] = await Promise.all([
     fetch(
       'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=bitcoin,ethereum,solana&price_change_percentage=24h,7d'
@@ -248,12 +275,11 @@ async function main() {
     throw new Error('RESEND_API_KEY / RESEND_AUDIENCE_ID / RESEND_AUDIENCE_ID_EN ausentes')
   if (!process.env.ANTHROPIC_API_KEY) throw new Error('ANTHROPIC_API_KEY ausente')
 
-  console.log('Buscando dados de mercado em tempo real...')
-  const dadosMercado = await buscarDadosMercado()
-  console.log(dadosMercado)
-
   for (const lang of ['pt', 'en']) {
     const cfg = LANGS[lang]
+    console.log(`\n[${lang.toUpperCase()}] Buscando dados de mercado em tempo real...`)
+    const dadosMercado = await buscarDadosMercado(lang)
+    console.log(dadosMercado)
     console.log(`\n[${lang.toUpperCase()}] Gerando edição de ${cfg.dataLocal}...`)
     const conteudo = await gerarConteudo(lang, dadosMercado)
 
