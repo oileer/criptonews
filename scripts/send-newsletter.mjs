@@ -100,6 +100,7 @@ async function buscarDadosMercado(lang = 'pt') {
   try {
     const res = await fetch(`${ETRADE_API}/v1/newsletter/draft?lang=${lang}`, {
       signal: AbortSignal.timeout(120000),
+      headers: { 'x-api-key': process.env.ETRADE_API_KEY ?? '' },
     })
     if (!res.ok) throw new Error(`API e-trade ${res.status}`)
     const draft = await res.json()
