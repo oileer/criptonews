@@ -55,7 +55,7 @@ export default async function EdicaoPage({ params }: { params: Promise<{ data: s
     <main style={{ background: 'var(--bg)', minHeight: '100vh' }}>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       <Nav />
-      <article style={{ maxWidth: 720, margin: '0 auto', padding: '140px 24px 40px' }}>
+      <article style={{ maxWidth: 720, margin: '0 auto', padding: '180px 24px 40px' }}>
         <Link href="/edicoes" style={{ fontSize: 14, color: 'var(--text-muted)', textDecoration: 'none' }}>
           ← todas as edições
         </Link>

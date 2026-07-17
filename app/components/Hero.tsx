@@ -49,7 +49,7 @@ export default function Hero({ lang = 'pt' }: { lang?: Lang }) {
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      padding: '120px 24px 80px',
+      padding: '160px 24px 80px',
       overflow: 'hidden',
       background: 'var(--bg)',
     }}>

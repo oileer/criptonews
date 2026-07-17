@@ -19,7 +19,7 @@ export default function EdicoesPage() {
   return (
     <main style={{ background: 'var(--bg)', minHeight: '100vh' }}>
       <Nav />
-      <section style={{ maxWidth: 760, margin: '0 auto', padding: '140px 24px 80px' }}>
+      <section style={{ maxWidth: 760, margin: '0 auto', padding: '180px 24px 80px' }}>
         <p className="eyebrow" style={{ marginBottom: 16 }}>arquivo</p>
         <h1 style={{
           fontSize: 'clamp(36px, 6vw, 64px)',
