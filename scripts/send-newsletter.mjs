@@ -97,6 +97,9 @@ Required structure (reply ONLY with the inner HTML, no \`\`\`, no <html>/<body>)
 const ETRADE_API = process.env.ETRADE_API_URL || 'http://100.123.103.94:8787'
 
 async function buscarDadosMercado(lang = 'pt') {
+  // Tickers estruturados (grade de cotações do e-mail) sempre via fetch
+  // direto — barato e independente da API do kody estar de pé.
+  const tickersPromise = buscarTickers().catch(() => null)
   try {
     const res = await fetch(`${ETRADE_API}/v1/newsletter/draft?lang=${lang}`, {
       signal: AbortSignal.timeout(120000),
@@ -112,33 +115,46 @@ async function buscarDadosMercado(lang = 'pt') {
         '\n\nANÁLISE DO ANALISTA-CHEFE do e-trade.ai (use como base técnica; reescreva no tom da newsletter, não copie):\n' +
         draft.analiseHtml.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim()
     console.log('  (dados via API e-trade.ai — Termômetro ' + (draft.termometro?.score ?? '?') + '/100)')
-    return dados
+    return { dados, tickers: await tickersPromise, termometro: draft.termometro?.score ?? null }
   } catch (e) {
     console.warn('  API e-trade.ai indisponível (' + e.message + ') — usando fetch direto')
-    return buscarDadosMercadoDireto()
+    return buscarDadosMercadoDireto(await tickersPromise)
   }
 }
 
-async function buscarDadosMercadoDireto() {
+async function buscarTickers() {
   const [cg, fg] = await Promise.all([
     fetch(
       'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=bitcoin,ethereum,solana&price_change_percentage=24h,7d'
     ).then((r) => r.json()),
     fetch('https://api.alternative.me/fng/?limit=2').then((r) => r.json()),
   ])
+  return {
+    moedas: cg.map((m) => ({
+      simbolo: m.symbol.toUpperCase(),
+      preco: m.current_price,
+      var24h: m.price_change_percentage_24h_in_currency ?? 0,
+      var7d: m.price_change_percentage_7d_in_currency ?? 0,
+      high24h: m.high_24h,
+      low24h: m.low_24h,
+    })),
+    fearGreed: { hoje: fg.data[0], ontem: fg.data[1] },
+  }
+}
 
-  const linhas = cg.map(
+function buscarDadosMercadoDireto(tickers) {
+  if (!tickers) throw new Error('sem dados de mercado (CoinGecko e API e-trade fora)')
+  const linhas = tickers.moedas.map(
     (m) =>
-      `${m.symbol.toUpperCase()}: US$ ${m.current_price.toLocaleString('en-US')} ` +
-      `(24h: ${m.price_change_percentage_24h_in_currency?.toFixed(2)}% | ` +
-      `7d: ${m.price_change_percentage_7d_in_currency?.toFixed(2)}%) | ` +
-      `high 24h: US$ ${m.high_24h.toLocaleString('en-US')} | low 24h: US$ ${m.low_24h.toLocaleString('en-US')}`
+      `${m.simbolo}: US$ ${m.preco.toLocaleString('en-US')} ` +
+      `(24h: ${m.var24h.toFixed(2)}% | 7d: ${m.var7d.toFixed(2)}%) | ` +
+      `high 24h: US$ ${m.high24h.toLocaleString('en-US')} | low 24h: US$ ${m.low24h.toLocaleString('en-US')}`
   )
-  const [fgHoje, fgOntem] = fg.data
+  const { hoje, ontem } = tickers.fearGreed
   linhas.push(
-    `Fear & Greed: ${fgHoje.value} (${fgHoje.value_classification}) | yesterday: ${fgOntem.value} (${fgOntem.value_classification})`
+    `Fear & Greed: ${hoje.value} (${hoje.value_classification}) | yesterday: ${ontem.value} (${ontem.value_classification})`
   )
-  return linhas.join('\n')
+  return { dados: linhas.join('\n'), tickers, termometro: null }
 }
 
 async function gerarConteudo(lang, dadosMercado) {
@@ -169,47 +185,139 @@ async function gerarConteudo(lang, dadosMercado) {
   return bruto.slice(inicio, fim + 4).trim()
 }
 
-function montarHtml(lang, conteudo) {
+// ————— template do e-mail (estilo casa de análise: header de marca, grade de
+// cotações com setas, selo do termômetro, conteúdo, CTA e rodapé completo).
+// Tabelas + estilo inline: é o que renderiza consistente em Gmail/Outlook/Apple.
+
+const VERDE = '#2ecc71'
+const VERMELHO = '#e85c4a'
+const OURO = '#f0b429'
+const LARANJA = '#ff8a47'
+
+function fmtPreco(v) {
+  return v >= 1000
+    ? '$' + Math.round(v).toLocaleString('en-US')
+    : '$' + v.toLocaleString('en-US', { maximumFractionDigits: 2 })
+}
+
+function celulaTicker(rotulo, valor, variacao) {
+  const sobe = variacao >= 0
+  const cor = sobe ? VERDE : VERMELHO
+  const seta = sobe ? '&#9650;' : '&#9660;'
+  const sinal = sobe ? '+' : ''
+  return `<td align="center" style="padding:14px 4px;border-right:1px solid #262626;">
+    <div style="font-family:Arial,sans-serif;font-size:11px;color:#8a8a8a;letter-spacing:1px;font-weight:bold;">${rotulo}</div>
+    <div style="font-family:Arial,sans-serif;font-size:13px;color:${cor};margin-top:6px;">${seta} ${sinal}${variacao.toFixed(2)}%</div>
+    <div style="font-family:Arial,sans-serif;font-size:13px;color:#e0e0e0;margin-top:4px;font-weight:bold;">${valor}</div>
+  </td>`
+}
+
+function gradeTickers(lang, tickers) {
+  if (!tickers) return ''
+  const fg = tickers.fearGreed.hoje
+  const fgDelta = Number(fg.value) - Number(tickers.fearGreed.ontem.value)
+  const celulas = tickers.moedas
+    .map((m) => celulaTicker(m.simbolo, fmtPreco(m.preco), m.var24h))
+    .join('\n')
+  const fgCor = Number(fg.value) >= 55 ? VERDE : Number(fg.value) <= 45 ? VERMELHO : OURO
+  return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#141414;border:1px solid #262626;border-radius:12px;margin:24px 0 0;">
+    <tr>
+      ${celulas}
+      <td align="center" style="padding:14px 4px;">
+        <div style="font-family:Arial,sans-serif;font-size:11px;color:#8a8a8a;letter-spacing:1px;font-weight:bold;">FEAR &amp; GREED</div>
+        <div style="font-family:Arial,sans-serif;font-size:13px;color:${fgCor};margin-top:6px;">${fgDelta >= 0 ? '&#9650; +' : '&#9660; '}${fgDelta}</div>
+        <div style="font-family:Arial,sans-serif;font-size:13px;color:#e0e0e0;margin-top:4px;font-weight:bold;">${fg.value}/100</div>
+      </td>
+    </tr>
+    <tr><td colspan="${tickers.moedas.length + 1}" align="center" style="padding:0 0 10px;font-family:Arial,sans-serif;font-size:11px;color:#666;">${lang === 'en' ? 'ref. date' : 'data de ref.'} ${LANGS[lang].dataLocal} &middot; 24h</td></tr>
+  </table>`
+}
+
+function seloTermometro(lang, score) {
+  if (score == null) return ''
+  const cor = score >= 55 ? VERDE : score <= 45 ? VERMELHO : OURO
+  const pct = Math.max(4, Math.min(100, score))
+  const rotulo = lang === 'en' ? 'e-trade thermometer' : 'termômetro e-trade'
+  return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#141414;border:1px solid #262626;border-radius:12px;margin:16px 0 0;">
+    <tr>
+      <td style="padding:14px 18px;">
+        <span style="font-family:Arial,sans-serif;font-size:11px;color:#8a8a8a;letter-spacing:1px;font-weight:bold;text-transform:uppercase;">${rotulo}</span>
+        <span style="font-family:Arial,sans-serif;font-size:16px;color:${cor};font-weight:bold;float:right;">${score}/100</span>
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:10px;"><tr>
+          <td width="${pct}%" style="background:linear-gradient(to right,${OURO},${LARANJA});height:6px;border-radius:3px;font-size:0;line-height:0;">&nbsp;</td>
+          <td style="background:#262626;height:6px;border-radius:3px;font-size:0;line-height:0;">&nbsp;</td>
+        </tr></table>
+      </td>
+    </tr>
+  </table>`
+}
+
+export function montarHtml(lang, conteudo, mercado) {
   const cfg = LANGS[lang]
+  const marca = lang === 'en' ? 'CRYPTO NEWS' : 'CRIPTO NEWS'
+  // remove o primeiro <p> (CRIPTO NEWS — data): o header do e-mail já mostra marca+data
+  const miolo = conteudo.replace(/^<p><b>(CRIPTO|CRYPTO) NEWS[^<]*<\/b><\/p>\s*/i, '')
   return `<!DOCTYPE html>
-<html>
+<html lang="${lang === 'en' ? 'en' : 'pt-BR'}">
 <head>
 <meta charset="UTF-8">
-<style>
-  body { font-family: Georgia, serif; max-width: 600px; margin: 0 auto; background: #0d0d0d; }
-  .container { background: #1a1a1a; padding: 40px; border-radius: 8px; margin: 20px auto; }
-  .header { border-bottom: 3px solid #f0b429; padding-bottom: 16px; margin-bottom: 24px; }
-  .header h1 { color: #f0b429; font-size: 22px; margin: 0; letter-spacing: 3px; font-family: monospace; }
-  .header p { color: #666; font-size: 13px; margin: 6px 0 0; }
-  .content { color: #e0e0e0; line-height: 1.9; font-size: 15px; }
-  .content b { color: #f0b429; }
-  .sponsor { border-top: 1px solid #333; margin-top: 32px; padding-top: 24px; text-align: center; }
-  .sponsor p { color: #999; font-size: 13px; margin: 0 0 12px; line-height: 1.6; }
-  .sponsor a.btn { display: inline-block; background: linear-gradient(to right, #f0b429, #ff8a47); color: #111; font-weight: bold; padding: 12px 24px; border-radius: 999px; text-decoration: none; font-size: 14px; }
-  .footer { border-top: 1px solid #333; margin-top: 32px; padding-top: 16px; color: #555; font-size: 12px; text-align: center; }
-  .footer a { color: #555; }
-</style>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="dark">
+<title>${marca}</title>
 </head>
-<body>
-<div class="container">
-  <div class="header">
-    <h1>${lang === 'en' ? 'CRYPTO NEWS' : 'CRIPTO NEWS'}</h1>
-    <p>${cfg.dataLocal} · ${cfg.header}</p>
-  </div>
-  <div class="content">
-${conteudo}
-  </div>
-  <div class="sponsor">
-    <p>${lang === 'en'
-      ? '<b style="color:#f0b429">e-trade.ai</b> — send your chart screenshot and get bias, support/resistance levels and a trade plan, in seconds.'
-      : '<b style="color:#f0b429">e-trade.ai</b> — manda o print do gráfico e recebe viés, níveis e plano de operação, em segundos.'}</p>
-    <a class="btn" href="https://etradeai.eullerlolato.com">${lang === 'en' ? 'try e-trade.ai' : 'testar o e-trade.ai'}</a>
-  </div>
-  <div class="footer">
-    <p>${cfg.footer}</p>
-    <p><a href="mailto:news@noticias.eullerlolato.com?subject=Unsubscribe">${cfg.unsubscribe}</a></p>
-  </div>
-</div>
+<body style="margin:0;padding:0;background:#0d0d0d;">
+<center>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#0d0d0d;">
+<tr><td align="center" style="padding:24px 12px;">
+<table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;">
+
+  <!-- header de marca -->
+  <tr><td style="background:#000000;border-radius:16px 16px 0 0;padding:28px 32px 22px;border-bottom:3px solid ${OURO};">
+    <span style="font-family:'Courier New',monospace;font-size:24px;font-weight:bold;color:${OURO};letter-spacing:4px;">${marca}</span>
+    <div style="font-family:Arial,sans-serif;font-size:13px;color:#8a8a8a;margin-top:8px;">${cfg.dataLocal} &middot; ${cfg.header}</div>
+  </td></tr>
+
+  <!-- corpo -->
+  <tr><td style="background:#1a1a1a;padding:8px 32px 32px;">
+    ${gradeTickers(lang, mercado?.tickers)}
+    ${seloTermometro(lang, mercado?.termometro)}
+
+    <div style="font-family:Georgia,serif;font-size:15px;line-height:1.85;color:#e0e0e0;margin-top:28px;">
+${miolo.replace(/<b>/g, `<b style="color:${OURO};">`)}
+    </div>
+
+    <!-- CTA e-trade.ai -->
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#141414;border:1px solid #262626;border-radius:12px;margin-top:32px;">
+      <tr><td align="center" style="padding:24px 24px 26px;">
+        <div style="font-family:Arial,sans-serif;font-size:14px;color:#bbbbbb;line-height:1.6;margin-bottom:16px;">${
+          lang === 'en'
+            ? `<b style="color:${OURO};">e-trade.ai</b> &mdash; send your chart screenshot and get bias, support/resistance levels and a trade plan, in seconds.`
+            : `<b style="color:${OURO};">e-trade.ai</b> &mdash; manda o print do gr&aacute;fico e recebe vi&eacute;s, n&iacute;veis e plano de opera&ccedil;&atilde;o, em segundos.`
+        }</div>
+        <a href="https://etradeai.eullerlolato.com" style="display:inline-block;background:linear-gradient(to right,${OURO},${LARANJA});color:#111111;font-family:Arial,sans-serif;font-weight:bold;font-size:14px;padding:13px 28px;border-radius:999px;text-decoration:none;">${lang === 'en' ? 'try e-trade.ai' : 'testar o e-trade.ai'}</a>
+      </td></tr>
+    </table>
+  </td></tr>
+
+  <!-- rodapé -->
+  <tr><td style="background:#111111;border-radius:0 0 16px 16px;padding:24px 32px;border-top:1px solid #262626;">
+    <div style="font-family:Arial,sans-serif;font-size:12px;color:#777;line-height:1.7;text-align:center;">
+      ${cfg.footer}<br>
+      ${
+        lang === 'en'
+          ? 'Nothing here is financial advice &mdash; it is market analysis. Do your own research.'
+          : 'Nada aqui &eacute; recomenda&ccedil;&atilde;o de investimento &mdash; &eacute; an&aacute;lise de mercado. Fa&ccedil;a sua pr&oacute;pria pesquisa.'
+      }<br><br>
+      <a href="https://noticias.eullerlolato.com${lang === 'en' ? '/en' : ''}" style="color:${OURO};text-decoration:none;">${lang === 'en' ? 'read on the web' : 'ler no site'}</a>
+      &nbsp;&middot;&nbsp;
+      <a href="mailto:news@noticias.eullerlolato.com?subject=Unsubscribe" style="color:#777;">${cfg.unsubscribe}</a>
+    </div>
+  </td></tr>
+
+</table>
+</td></tr>
+</table>
+</center>
 </body>
 </html>`
 }
@@ -278,10 +386,10 @@ async function main() {
   for (const lang of ['pt', 'en']) {
     const cfg = LANGS[lang]
     console.log(`\n[${lang.toUpperCase()}] Buscando dados de mercado em tempo real...`)
-    const dadosMercado = await buscarDadosMercado(lang)
-    console.log(dadosMercado)
+    const mercado = await buscarDadosMercado(lang)
+    console.log(mercado.dados)
     console.log(`\n[${lang.toUpperCase()}] Gerando edição de ${cfg.dataLocal}...`)
-    const conteudo = await gerarConteudo(lang, dadosMercado)
+    const conteudo = await gerarConteudo(lang, mercado.dados)
 
     if (DRY_RUN) {
       console.log(`\n--- DRY RUN [${lang.toUpperCase()}] ---\n`)
@@ -292,7 +400,7 @@ async function main() {
 
     salvarEdicao(lang, conteudo)
 
-    const html = montarHtml(lang, conteudo)
+    const html = montarHtml(lang, conteudo, mercado)
     const contatos = await buscarContatos(cfg.audienceId)
     console.log(`  Enviando para ${contatos.length} contatos...`)
     let ok = 0
@@ -312,7 +420,11 @@ async function main() {
   if (!DRY_RUN) publicarNoSite()
 }
 
-main().catch((e) => {
-  console.error(e)
-  process.exit(1)
-})
+// roda só quando executado direto (permite importar montarHtml em testes/preview)
+import { pathToFileURL } from 'node:url'
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  main().catch((e) => {
+    console.error(e)
+    process.exit(1)
+  })
+}
