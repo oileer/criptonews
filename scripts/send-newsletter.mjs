@@ -94,12 +94,13 @@ Required structure (reply ONLY with the inner HTML, no \`\`\`, no <html>/<body>)
 // Dados de mercado em tempo real — a IA fica proibida de citar preços de outra fonte.
 // Fonte primária: API do e-trade.ai no kody (dados ricos + Termômetro + análise do
 // analista-chefe IA). Se a API estiver fora, cai no fetch direto (fallback).
-const ETRADE_API = process.env.ETRADE_API_URL || 'http://100.123.103.94:8787'
+const ETRADE_API = process.env.ETRADE_API_URL || 'http://100.97.40.28:8787'
 
 async function buscarDadosMercado(lang = 'pt') {
   try {
     const res = await fetch(`${ETRADE_API}/v1/newsletter/draft?lang=${lang}`, {
       signal: AbortSignal.timeout(120000),
+      headers: { "x-api-key": process.env.ETRADE_API_KEY ?? "" },
     })
     if (!res.ok) throw new Error(`API e-trade ${res.status}`)
     const draft = await res.json()
