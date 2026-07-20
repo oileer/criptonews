@@ -1,6 +1,5 @@
-// Gera as artes diárias pros posts sociais (IG/FB/Threads) com o MESMO layout do e-mail
-// da newsletter (estilo casa de análise): header preto com marca mono dourada, corpo
-// #1a1a1a, card de tickers em colunas, barra do termômetro, destaques e CTA em pill.
+// Gera as artes diárias pros posts sociais (IG/FB/Threads) — fundo gelo igual ao site
+// (--bg #fafafa), badges vetoriais Cripto News + e-trade.ai, CTA "link na bio".
 // Uso: node --env-file=.env.local scripts/gen-social-art.mjs [AAAA-MM-DD]
 // Saída: content/social/<data>-feed.png (1080x1080) e <data>-story.png (1080x1920)
 
@@ -12,14 +11,17 @@ import wawoff2 from 'wawoff2'
 
 const OURO = '#f0b429'
 const LARANJA = '#ff8a47'
-const VERDE = '#2ecc71'
-const VERMELHO = '#e74c3c'
-const CINZA = '#8a8a8a'
-const BORDA = '#262626'
+const VERDE = '#1a9c53'
+const VERMELHO = '#d64545'
+const BG = '#fafafa'
+const CARD_BG = '#f0f0f0'
+const CARD_BORDA = '#d8d8d8'
+const TEXTO = '#111111'
+const TEXTO_SEC = '#444444'
+const TEXTO_MUTED = '#888888'
 
 const ETRADE_API = process.env.ETRADE_API_URL || 'http://100.97.40.28:8787'
 const API_KEY = process.env.ETRADE_API_KEY ?? ''
-const MONO = '/usr/share/fonts/truetype/liberation/LiberationMono-Bold.ttf'
 
 const dataArg = process.argv[2] || new Date().toLocaleDateString('sv-SE', { timeZone: 'America/Sao_Paulo' })
 const [ano, mes, dia] = dataArg.split('-')
@@ -55,64 +57,116 @@ const fmtUSD = v => v >= 1000
   ? `US$ ${Math.round(v).toLocaleString('pt-BR')}`
   : `US$ ${v.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
 
-// ---------- blocos (espelham o e-mail) ----------
+// ---------- marca (mesmo losango vetorial do site — polígonos, sem PNG) ----------
 
-// Header do e-mail: fundo preto, marca Courier dourada letterspacing 4, borda inferior dourada
-function cabecalho(e) {
+function Diamante(tam) {
+  const pts = [
+    ['.92', '127.9 0 125.1 9.5 125.1 285.1 127.9 287.9 255.9 212.3'],
+    ['.65', '127.9 0 0 212.3 127.9 287.9 127.9 154.2'],
+    ['.85', '127.9 312.2 126.3 314.1 126.3 412.3 127.9 416.9 256 236.6'],
+    ['.6', '127.9 416.9 127.9 312.2 0 236.6'],
+    ['.45', '127.9 287.9 255.9 212.3 127.9 154.2'],
+    ['.3', '0 212.3 127.9 287.9 127.9 154.2'],
+  ]
+  return {
+    type: 'svg',
+    props: {
+      width: tam, height: tam * 1.63, viewBox: '0 0 256 417',
+      children: pts.map(([op, points]) => ({
+        type: 'polygon', props: { fill: '#ffffff', fillOpacity: op, points },
+      })),
+    },
+  }
+}
+
+function badge(tam) {
   return h('div', {
-    display: 'flex', flexDirection: 'column', background: '#000000',
-    borderRadius: '24px 24px 0 0', padding: `${38 * e}px ${52 * e}px ${30 * e}px`,
-    borderBottom: `${5 * e}px solid ${OURO}`,
-  },
-    h('div', { fontFamily: 'Mono', fontSize: 46 * e, color: OURO, letterSpacing: 8 }, 'CRIPTO NEWS'),
-    h('div', { fontSize: 26 * e, color: CINZA, marginTop: 14 * e }, `${dataBR} · o mercado cripto do dia`),
+    width: tam, height: tam, borderRadius: tam * 0.27, flexShrink: 0,
+    background: `linear-gradient(135deg, ${OURO}, ${LARANJA})`,
+    alignItems: 'center', justifyContent: 'center',
+    boxShadow: '0 2px 10px rgba(240,180,41,.35)',
+  }, Diamante(tam * 0.42))
+}
+
+function marca(nome, tamBadge, tamTexto, letterSpacing = 3) {
+  return h('div', { alignItems: 'center', gap: tamBadge * 0.4 },
+    badge(tamBadge),
+    h('div', { fontSize: tamTexto, fontWeight: 700, color: TEXTO, letterSpacing }, nome),
   )
 }
 
-// Grade de tickers do e-mail: colunas com rótulo / seta+variação / valor
-function colTicker(rotulo, variacao, valor, ultima, e, pct = true) {
-  const cor = variacao >= 0 ? VERDE : VERMELHO
-  const seta = variacao >= 0 ? '▲' : '▼'
-  const sinal = variacao >= 0 ? '+' : ''
-  const delta = pct ? `${seta} ${sinal}${variacao.toFixed(2)}%` : `${seta} ${sinal}${variacao}`
+// ---------- blocos ----------
+
+function cabecalho(e) {
   return h('div', {
-    display: 'flex', flexDirection: 'column', alignItems: 'center', flex: 1,
-    padding: `${20 * e}px 8px`, borderRight: ultima ? 'none' : `1px solid ${BORDA}`,
+    flexDirection: 'column', padding: `${44 * e}px ${52 * e}px 0`,
   },
-    h('div', { fontSize: 22 * e, color: CINZA, letterSpacing: 2, fontWeight: 700 }, rotulo),
-    h('div', { fontSize: 27 * e, color: cor, marginTop: 12 * e }, delta),
-    h('div', { fontSize: 28 * e, color: '#e0e0e0', marginTop: 8 * e, fontWeight: 700 }, valor),
+    h('div', { justifyContent: 'space-between', alignItems: 'center' },
+      marca('CRIPTO NEWS', 46 * e, 34 * e),
+      marca('E-TRADE.AI', 40 * e, 28 * e),
+    ),
+    h('div', {
+      fontSize: 26 * e, color: TEXTO_MUTED, marginTop: 22 * e,
+      paddingBottom: 22 * e, borderBottom: `2px solid ${CARD_BORDA}`,
+    }, `${dataBR} · o mercado cripto do dia`),
+  )
+}
+
+function seta(sobe, tam, cor) {
+  const pontos = sobe ? '50,0 100,100 0,100' : '0,0 100,0 50,100'
+  return {
+    type: 'svg',
+    props: {
+      width: tam, height: tam, viewBox: '0 0 100 100', style: { marginRight: tam * 0.4 },
+      children: [{ type: 'polygon', props: { points: pontos, fill: cor } }],
+    },
+  }
+}
+
+function colTicker(rotulo, variacao, valor, ultima, e, pct = true) {
+  const sobe = variacao >= 0
+  const cor = sobe ? VERDE : VERMELHO
+  const sinal = sobe ? '+' : ''
+  const texto = pct ? `${sinal}${variacao.toFixed(2)}%` : `${sinal}${variacao}`
+  return h('div', {
+    flexDirection: 'column', alignItems: 'center', flex: 1,
+    padding: `${20 * e}px 8px`, borderRight: ultima ? 'none' : `1px solid ${CARD_BORDA}`,
+  },
+    h('div', { fontSize: 22 * e, color: TEXTO_MUTED, letterSpacing: 2, fontWeight: 700 }, rotulo),
+    h('div', { alignItems: 'center', marginTop: 12 * e },
+      seta(sobe, 20 * e, cor),
+      h('div', { fontSize: 27 * e, color: cor, fontWeight: 700 }, texto),
+    ),
+    h('div', { fontSize: 28 * e, color: TEXTO, marginTop: 8 * e, fontWeight: 700 }, valor),
   )
 }
 
 function gradeTickers(moedas, fg, e) {
   return h('div', {
-    display: 'flex', flexDirection: 'column', background: '#141414',
-    border: `1px solid ${BORDA}`, borderRadius: 18, marginTop: 30 * e,
+    flexDirection: 'column', background: CARD_BG,
+    border: `1px solid ${CARD_BORDA}`, borderRadius: 18, marginTop: 30 * e,
   },
-    h('div', { display: 'flex' },
-      ...moedas.map((m, i) => colTicker(m.symbol, m.var24h, fmtUSD(m.preco), false, e)),
+    h('div', {},
+      ...moedas.map(m => colTicker(m.symbol, m.var24h, fmtUSD(m.preco), false, e)),
       colTicker('F&G', fg.valor - (fg.ontem ?? fg.valor), `${fg.valor}/100`, true, e, false),
     ),
-    h('div', { display: 'flex', justifyContent: 'center', paddingBottom: 12 * e, fontSize: 18 * e, color: '#666' },
+    h('div', { justifyContent: 'center', paddingBottom: 12 * e, fontSize: 18 * e, color: TEXTO_MUTED },
       `data de ref. ${dataBR} · 24h`),
   )
 }
 
-// Barra do termômetro do e-mail: rótulo + score/100 à direita + barra fina com gradiente
 function termometro(score, faixa, e) {
-  const larguraBarra = 100
   return h('div', {
-    display: 'flex', flexDirection: 'column', background: '#141414',
-    border: `1px solid ${BORDA}`, borderRadius: 18, marginTop: 22 * e,
+    flexDirection: 'column', background: CARD_BG,
+    border: `1px solid ${CARD_BORDA}`, borderRadius: 18, marginTop: 22 * e,
     padding: `${22 * e}px ${34 * e}px`,
   },
-    h('div', { display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
-      h('div', { fontSize: 22 * e, color: CINZA, letterSpacing: 2, fontWeight: 700 },
+    h('div', { justifyContent: 'space-between', alignItems: 'center' },
+      h('div', { fontSize: 22 * e, color: TEXTO_MUTED, letterSpacing: 2, fontWeight: 700 },
         `TERMÔMETRO E-TRADE.AI · ${faixa.toUpperCase()}`),
-      h('div', { fontSize: 32 * e, color: OURO, fontWeight: 700 }, `${score}/100`),
+      h('div', { fontSize: 32 * e, color: '#b8860f', fontWeight: 700 }, `${score}/100`),
     ),
-    h('div', { display: 'flex', width: '100%', height: 12 * e, background: BORDA, borderRadius: 6 * e, marginTop: 20 * e },
+    h('div', { width: '100%', height: 12 * e, background: CARD_BORDA, borderRadius: 6 * e, marginTop: 20 * e },
       h('div', {
         width: `${score}%`, height: 12 * e, borderRadius: 6 * e,
         background: `linear-gradient(90deg, ${OURO}, ${LARANJA})`,
@@ -121,54 +175,47 @@ function termometro(score, faixa, e) {
   )
 }
 
-// Destaques: negrito dourado como os <b> do corpo do e-mail
 function blocoDestaques(destaques, e) {
-  if (!destaques.length) return h('div', { display: 'flex' })
-  return h('div', { display: 'flex', flexDirection: 'column', marginTop: 30 * e },
-    h('div', { fontSize: 22 * e, color: CINZA, letterSpacing: 2, fontWeight: 700 }, 'DESTAQUES DO DIA'),
+  if (!destaques.length) return h('div', {})
+  return h('div', { flexDirection: 'column', marginTop: 30 * e },
+    h('div', { fontSize: 22 * e, color: TEXTO_MUTED, letterSpacing: 2, fontWeight: 700 }, 'DESTAQUES DO DIA'),
     ...destaques.map(t =>
-      h('div', { display: 'flex', alignItems: 'flex-start', marginTop: 14 * e },
-        h('div', { fontSize: 26 * e, color: OURO, fontWeight: 700, marginRight: 14 * e }, '·'),
-        h('div', { fontSize: 26 * e, color: OURO, fontWeight: 700, lineHeight: 1.35 }, t),
+      h('div', { alignItems: 'flex-start', marginTop: 14 * e },
+        h('div', { fontSize: 26 * e, color: '#b8860f', fontWeight: 700, marginRight: 14 * e }, '·'),
+        h('div', { fontSize: 26 * e, color: TEXTO_SEC, fontWeight: 500, lineHeight: 1.35 }, t),
       ),
     ),
   )
 }
 
-// Rodapé preto do e-mail com o CTA em pill (gradiente, igual ao botão do e-mail)
 function rodape(e) {
   return h('div', {
-    display: 'flex', flexDirection: 'column', alignItems: 'center', background: '#111111',
-    borderRadius: '0 0 24px 24px', borderTop: `1px solid ${BORDA}`,
-    padding: `${24 * e}px`, marginTop: 'auto',
+    flexDirection: 'column', alignItems: 'center',
+    padding: `${28 * e}px ${40 * e}px ${40 * e}px`, marginTop: 'auto',
   },
-    h('div', { fontSize: 24 * e, color: '#bbbbbb' }, 'Análise completa grátis no seu e-mail, todo dia às 6h'),
+    h('div', { fontSize: 24 * e, color: TEXTO_SEC, textAlign: 'center' },
+      'Análise completa grátis no seu e-mail, todo dia às 6h'),
     h('div', {
-      display: 'flex', background: `linear-gradient(90deg, ${OURO}, ${LARANJA})`,
-      color: '#111111', fontWeight: 700, fontSize: 26 * e, marginTop: 16 * e,
+      background: `linear-gradient(90deg, ${OURO}, ${LARANJA})`,
+      color: '#111111', fontWeight: 700, fontSize: 26 * e, marginTop: 18 * e,
       padding: `${14 * e}px ${38 * e}px`, borderRadius: 999,
-    }, 'noticias.eullerlolato.com'),
+    }, 'link na bio'),
   )
 }
 
 function arte({ largura, altura, e, dados }) {
   const { score, faixa, moedas, fg, destaques } = dados
   return h('div', {
-    width: largura, height: altura, display: 'flex', flexDirection: 'column',
-    background: '#0d0d0d', fontFamily: 'HelveticaNow', padding: 40 * e,
+    width: largura, height: altura, flexDirection: 'column',
+    background: BG, fontFamily: 'HelveticaNow',
   },
-    h('div', {
-      display: 'flex', flexDirection: 'column', flex: 1,
-      background: '#1a1a1a', borderRadius: 24,
-    },
-      cabecalho(e),
-      h('div', { display: 'flex', flexDirection: 'column', flex: 1, padding: `0 ${52 * e}px`, justifyContent: altura > largura ? 'space-around' : 'flex-start' },
-        gradeTickers(moedas, fg, e),
-        termometro(score, faixa, e),
-        blocoDestaques(destaques, e),
-      ),
-      rodape(e),
+    cabecalho(e),
+    h('div', { flexDirection: 'column', flex: 1, padding: `0 ${52 * e}px`, justifyContent: altura > largura ? 'space-around' : 'flex-start' },
+      gradeTickers(moedas, fg, e),
+      termometro(score, faixa, e),
+      blocoDestaques(destaques, e),
     ),
+    rodape(e),
   )
 }
 
@@ -183,14 +230,13 @@ async function carregarFontes() {
     const data = Buffer.from(await wawoff2.decompress(fs.readFileSync(path.join(dir, `HelveticaNowDisplay-${nome}.woff2`))))
     fontes.push({ name: 'HelveticaNow', data, weight, style: 'normal' })
   }
-  fontes.push({ name: 'Mono', data: fs.readFileSync(MONO), weight: 700, style: 'normal' })
   return fontes
 }
 
 function validar(el, caminho = 'raiz') {
   if (!el || typeof el !== 'object') return
   const filhos = [].concat(el.props?.children ?? []).filter(c => c !== undefined && c !== null && c !== false)
-  if (filhos.length > 1 && !['flex', 'contents', 'none'].includes(el.props?.style?.display))
+  if (filhos.length > 1 && !['flex', 'contents', 'none'].includes(el.props?.style?.display) && el.type !== 'svg')
     console.error(`SEM FLEX em ${caminho}: ${filhos.length} filhos, style=${JSON.stringify(el.props?.style).slice(0, 140)}`)
   filhos.forEach((c, i) => validar(c, `${caminho}>${i}`))
 }
@@ -215,27 +261,6 @@ async function main() {
     destaques: destaquesDaEdicao(),
   }
   const fonts = await carregarFontes()
-  if (process.env.DEBUG_BLOCO) {
-    const wrap = el => h('div', { display: 'flex', width: 1080, height: 1080 }, el)
-    const blocos = {
-      cabecalho: cabecalho(1),
-      grade: gradeTickers(dados.moedas, dados.fg, 1),
-      termometro: termometro(dados.score, dados.faixa, 1),
-      termo_rotulo: h('div', { fontSize: 22, color: CINZA, letterSpacing: 2, fontWeight: 700 }, `TERMÔMETRO E-TRADE.AI · ${dados.faixa.toUpperCase()}`),
-      termo_row: h('div', { display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
-        h('div', { fontSize: 22, color: CINZA }, 'X'), h('div', { fontSize: 32, color: OURO }, `${dados.score}/100`)),
-      termo_bar: h('div', { display: 'flex', width: '100%', height: 12, background: BORDA, borderRadius: 6, marginTop: 20 },
-        h('div', { width: `${dados.score}%`, height: 12, borderRadius: 6, background: `linear-gradient(90deg, ${OURO}, ${LARANJA})` })),
-      destaques: blocoDestaques(dados.destaques, 1),
-      cta: cta(1),
-      rodape: rodape(1),
-    }
-    for (const [nome, el] of Object.entries(blocos)) {
-      try { await satori(wrap(el), { width: 1080, height: 1080, fonts }); console.log(nome, 'OK') }
-      catch (err) { console.log(nome, 'FALHOU:', err.message) }
-    }
-    return
-  }
   const dirSaida = path.join('content', 'social')
   fs.mkdirSync(dirSaida, { recursive: true })
 
