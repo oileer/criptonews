@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "send": "node --env-file=.env.local scripts/send-newsletter.mjs",
-    "send:dry": "node --env-file=.env.local scripts/send-newsletter.mjs --dry-run"
+    "send:dry": "node --env-file=.env.local scripts/send-newsletter.mjs --dry-run",
+    "watchdog": "node --env-file=.env.local scripts/watchdog.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.110.0",
