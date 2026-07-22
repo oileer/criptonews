@@ -4,6 +4,7 @@ import Hero from './components/Hero'
 import HowItWorks from './components/HowItWorks'
 import PartnerCta from './components/PartnerCta'
 import CtaFinal from './components/CtaFinal'
+import Termometro from './components/Termometro'
 
 export default function Home() {
   return (
@@ -11,6 +12,9 @@ export default function Home() {
       <Nav />
       <Hero />
       <HowItWorks />
+      <div style={{ padding: '0 24px 40px' }}>
+        <Termometro />
+      </div>
       <PartnerCta />
       <CtaFinal />
       <footer style={{

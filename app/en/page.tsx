@@ -4,6 +4,7 @@ import Hero from '../components/Hero'
 import HowItWorks from '../components/HowItWorks'
 import PartnerCta from '../components/PartnerCta'
 import CtaFinal from '../components/CtaFinal'
+import Termometro from '../components/Termometro'
 import { dict } from '@/lib/i18n'
 
 export const metadata: Metadata = {
@@ -40,6 +41,9 @@ export default function HomeEn() {
       <Nav lang="en" />
       <Hero lang="en" />
       <HowItWorks lang="en" />
+      <div style={{ padding: '0 24px 40px' }}>
+        <Termometro lang="en" />
+      </div>
       <PartnerCta lang="en" />
       <CtaFinal lang="en" />
       <footer style={{
