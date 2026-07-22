@@ -15,9 +15,9 @@ function hojeSP() {
 }
 
 function horaMinutoSP() {
-  const [, hm] = new Date().toLocaleString('en-CA', { timeZone: 'America/Sao_Paulo' }).split(', ')
+  const [, hm] = new Date().toLocaleString('en-CA', { timeZone: 'America/Sao_Paulo', hour12: false }).split(', ')
   const [h, m] = hm.split(':').map(Number)
-  return h * 60 + m
+  return (h % 24) * 60 + m
 }
 
 async function checarEdicaoDeHoje() {
