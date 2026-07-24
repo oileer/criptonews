@@ -13,9 +13,15 @@ const bannerCopy = {
   },
 }
 
+const etradeCopy = {
+  pt: 'e-trade.ai',
+  en: 'e-trade.ai',
+}
+
 export default function Nav({ lang = 'pt' }: { lang?: Lang }) {
   const t = dict[lang]
   const b = bannerCopy[lang]
+  const etrade = etradeCopy[lang]
   const scrollToForm = () => {
     document.querySelector('#form-hero')?.scrollIntoView({ behavior: 'smooth' })
   }
@@ -68,6 +74,23 @@ export default function Nav({ lang = 'pt' }: { lang?: Lang }) {
           onMouseEnter={e => (e.currentTarget.style.color = 'var(--text-primary)')}
           onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-muted)')}>
           {lang === 'pt' ? '🇺🇸 EN' : '🇧🇷 PT'}
+        </a>
+        <a
+          href="https://etradeai.eullerlolato.com"
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{
+            display: 'flex', alignItems: 'center', gap: 6,
+            fontSize: 14, fontWeight: 600,
+            padding: '9px 16px', borderRadius: 999,
+            border: '1px solid var(--card-border)',
+            color: 'var(--text-primary)', textDecoration: 'none',
+            transition: 'border-color 0.2s, background 0.2s',
+          }}
+          onMouseEnter={e => { e.currentTarget.style.borderColor = '#f0b429'; e.currentTarget.style.background = 'rgba(240,180,41,0.08)' }}
+          onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--card-border)'; e.currentTarget.style.background = 'transparent' }}
+        >
+          ⚡ {etrade}
         </a>
         <button onClick={scrollToForm} className="btn-gold" style={{ padding: '10px 20px', fontSize: 14, borderRadius: 999 }}>
           {t.navCta}
