@@ -5,7 +5,7 @@
 //
 // Env: IG_ACCESS_TOKEN, IG_USER_ID (obrigatórios)
 //      THREADS_ACCESS_TOKEN, THREADS_USER_ID (opcionais — pula Threads sem eles)
-import { readFileSync, writeFileSync } from "node:fs";
+import { readFileSync, writeFileSync, existsSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -96,6 +96,28 @@ async function publicarInstagram(caption) {
   console.log(`[ig] story publicado (container ${containerStory.id})`);
 }
 
+// Container de vídeo demora mais que imagem pra processar — poll mais longo.
+async function publicarReels(caption) {
+  const videoUrl = `${SITE_URL}/videos/${hoje}.mp4`;
+
+  const videoOk = await esperarUrlPublica(videoUrl);
+  if (!videoOk) throw new Error(`vídeo não ficou público a tempo: ${videoUrl}`);
+
+  const container = await graphPost(`https://graph.instagram.com/v21.0/${IG_USER_ID}/media?access_token=${IG_TOKEN}`, {
+    media_type: "REELS",
+    video_url: videoUrl,
+    caption,
+  });
+  if (!(await esperarContainerPronto(container.id, IG_TOKEN, 30, 6000))) {
+    // vídeo demora mais que imagem — até 3min de poll
+    throw new Error(`container do reels (${container.id}) não ficou pronto a tempo`);
+  }
+  await graphPost(`https://graph.instagram.com/v21.0/${IG_USER_ID}/media_publish?access_token=${IG_TOKEN}`, {
+    creation_id: container.id,
+  });
+  console.log(`[ig] reels publicado (container ${container.id})`);
+}
+
 async function publicarThreads(caption) {
   const feedUrl = `${SITE_URL}/social/${hoje}-feed.png`;
   const container = await graphPost(
@@ -157,6 +179,11 @@ async function main() {
     } else {
       await renovarTokenIG();
       await publicarInstagram(caption);
+      if (existsSync(path.join("public", "videos", `${hoje}.mp4`))) {
+        await publicarReels(caption).catch((e) => console.error(`[ig] reels falhou (feed/story já publicados): ${e.message}`));
+      } else {
+        console.log("[ig] sem vídeo do dia — pulando reels (rodar gen-video-diario.mjs antes)");
+      }
     }
   }
 
