@@ -143,20 +143,29 @@ async function renovarTokenIG() {
   }
 }
 
+// --only=ig ou --only=threads pra republicar só uma rede sem duplicar a outra
+// (ex: retry manual depois que uma falhou, ou token de uma destravou depois da outra).
+const somente = process.argv.find((a) => a.startsWith("--only="))?.split("=")[1];
+
 async function main() {
-  if (!IG_TOKEN || !IG_USER_ID) {
-    console.error("[post-social] faltam IG_ACCESS_TOKEN/IG_USER_ID — nada a publicar");
-    process.exit(1);
+  const caption = legenda();
+
+  if (somente !== "threads") {
+    if (!IG_TOKEN || !IG_USER_ID) {
+      console.error("[post-social] faltam IG_ACCESS_TOKEN/IG_USER_ID — nada a publicar no IG");
+      if (somente === "ig") process.exit(1);
+    } else {
+      await renovarTokenIG();
+      await publicarInstagram(caption);
+    }
   }
 
-  await renovarTokenIG();
-  const caption = legenda();
-  await publicarInstagram(caption);
-
-  if (THREADS_TOKEN && THREADS_USER_ID) {
-    await publicarThreads(caption);
-  } else {
-    console.log("[threads] token ainda não configurado — pulando (rodar scripts/threads-auth.mjs quando o OAuth destravar)");
+  if (somente !== "ig") {
+    if (THREADS_TOKEN && THREADS_USER_ID) {
+      await publicarThreads(caption);
+    } else {
+      console.log("[threads] token ainda não configurado — pulando (rodar scripts/threads-auth.mjs quando o OAuth destravar)");
+    }
   }
 }
 
