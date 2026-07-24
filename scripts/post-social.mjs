@@ -49,6 +49,19 @@ async function graphPost(url, body) {
   return json;
 }
 
+// A IG processa a imagem em background depois de criar o container — publicar
+// direto sem esperar dá "Media ID is not available". Poll no status_code.
+async function esperarContainerPronto(containerId, token, tentativas = 15, intervaloMs = 4000) {
+  for (let i = 0; i < tentativas; i++) {
+    const res = await fetch(`https://graph.instagram.com/v21.0/${containerId}?fields=status_code&access_token=${token}`);
+    const json = await res.json();
+    if (json.status_code === "FINISHED") return true;
+    if (json.status_code === "ERROR") throw new Error(`container ${containerId} falhou no processamento da IG`);
+    await new Promise((r) => setTimeout(r, intervaloMs));
+  }
+  return false;
+}
+
 async function publicarInstagram(caption) {
   const feedUrl = `${SITE_URL}/social/${hoje}-feed.png`;
   const storyUrl = `${SITE_URL}/social/${hoje}-story.png`;
@@ -61,16 +74,22 @@ async function publicarInstagram(caption) {
     `https://graph.instagram.com/v21.0/${IG_USER_ID}/media?access_token=${IG_TOKEN}`,
     { image_url: feedUrl, caption }
   );
+  if (!(await esperarContainerPronto(containerFeed.id, IG_TOKEN))) {
+    throw new Error(`container do feed (${containerFeed.id}) não ficou pronto a tempo`);
+  }
   await graphPost(`https://graph.instagram.com/v21.0/${IG_USER_ID}/media_publish?access_token=${IG_TOKEN}`, {
     creation_id: containerFeed.id,
   });
   console.log(`[ig] feed publicado (container ${containerFeed.id})`);
 
-  // Story (não depende de novo poll — mesma propagação já vale pra ambos os arquivos)
+  // Story
   const containerStory = await graphPost(
     `https://graph.instagram.com/v21.0/${IG_USER_ID}/media?access_token=${IG_TOKEN}`,
     { image_url: storyUrl, media_type: "STORIES" }
   );
+  if (!(await esperarContainerPronto(containerStory.id, IG_TOKEN))) {
+    throw new Error(`container do story (${containerStory.id}) não ficou pronto a tempo`);
+  }
   await graphPost(`https://graph.instagram.com/v21.0/${IG_USER_ID}/media_publish?access_token=${IG_TOKEN}`, {
     creation_id: containerStory.id,
   });
@@ -83,6 +102,7 @@ async function publicarThreads(caption) {
     `https://graph.threads.net/v1.0/${THREADS_USER_ID}/threads?access_token=${THREADS_TOKEN}`,
     { media_type: "IMAGE", image_url: feedUrl, text: caption }
   );
+  await new Promise((r) => setTimeout(r, 8000)); // Threads não expõe status_code pra poll; espera fixa curta basta
   await graphPost(`https://graph.threads.net/v1.0/${THREADS_USER_ID}/threads_publish?access_token=${THREADS_TOKEN}`, {
     creation_id: container.id,
   });
