@@ -160,6 +160,10 @@ Responda SÓ com o número escolhido (ex: "7") ou "NENHUMA". Nada mais.`;
 
 // ---------- Haiku escreve o post ----------
 
+// CTA fixo, sempre igual — não deixa o Haiku improvisar essa parte (consistência
+// de marca + não some quando o modelo decide "economizar caracteres" sozinho).
+const CTA = "\n\nReceba a análise completa todo dia às 6h → link na bio";
+
 async function escreverPost(candidato) {
   const client = new Anthropic();
   const fonte = origem === "br" ? "veículo brasileiro" : "veículo internacional (traduza pro português)";
@@ -174,18 +178,20 @@ async function escreverPost(candidato) {
 Notícia (${fonte}): "${candidato.titulo}"
 
 Regras:
-- Máximo 420 caracteres (Threads corta em 500, deixa margem).
+- Máximo 340 caracteres (vai ganhar uma chamada pra ação no final, deixa espaço).
 - Primeira linha é o gancho (o fato em si, direto).
 - Pode ter 1 frase de contexto/porquê importa.
 - Sem hashtag genérica tipo #crypto #bitcoin em excesso — no máximo 1-2, só se fizer sentido.
 - Sem emoji em excesso — 0 a 1 no máximo.
 - Não invente número/dado que não está no título — se precisar de contexto, use o que é de conhecimento geral do mercado, sem inventar cifra específica.
+- Não escreva nenhuma chamada pra ação nem "link na bio" — isso é adicionado depois, separado.
 - Responda SÓ com o texto do post, nada de aspas, nada de explicação.`,
       },
     ],
   });
-  const texto = msg.content[0]?.text?.trim() ?? "";
-  return texto.length > 480 ? texto.slice(0, 477) + "..." : texto;
+  const corpo = msg.content[0]?.text?.trim() ?? "";
+  const corpoCortado = corpo.length > 400 ? corpo.slice(0, 397) + "..." : corpo;
+  return corpoCortado + CTA;
 }
 
 // ---------- publica no Threads ----------
