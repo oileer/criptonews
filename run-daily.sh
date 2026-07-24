@@ -23,12 +23,14 @@ etapa "git-pull" git pull --rebase --autostash origin main
 etapa "newsletter" npm run send
 etapa "artes-sociais" node --env-file=.env.local scripts/gen-social-art.mjs
 
+etapa "git-add" git add content/social/ public/social/
+etapa "git-commit" git commit -m "Artes sociais $(date +%F)"
+etapa "git-push" git push origin main
+
+# post-social depende da imagem já estar pública (Vercel rebuilda após o push
+# acima) — roda por último e ele mesmo espera a URL ficar acessível.
 if [ -f scripts/post-social.mjs ]; then
   etapa "post-social" node --env-file=.env.local scripts/post-social.mjs
 fi
-
-etapa "git-add" git add content/social/
-etapa "git-commit" git commit -m "Artes sociais $(date +%F)"
-etapa "git-push" git push origin main
 
 grep -q FALHA "$STATUS_FILE" && echo "run-daily terminou com falhas: $(grep FALHA "$STATUS_FILE" | tr '\n' ' ')" >> "$LOG"

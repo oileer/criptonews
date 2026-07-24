@@ -263,11 +263,17 @@ async function main() {
   const fonts = await carregarFontes()
   const dirSaida = path.join('content', 'social')
   fs.mkdirSync(dirSaida, { recursive: true })
+  // Também grava em public/social/ — vira URL pública (site.com/social/...) via Vercel,
+  // que é o que a Instagram Graph API exige (image_url tem que ser acessível na internet).
+  const dirPublico = path.join('public', 'social')
+  fs.mkdirSync(dirPublico, { recursive: true })
 
-  await renderizar(arte({ largura: 1080, altura: 1080, e: 1, dados }), 1080, 1080,
-    path.join(dirSaida, `${dataArg}-feed.png`), fonts)
-  await renderizar(arte({ largura: 1080, altura: 1920, e: 1.3, dados }), 1080, 1920,
-    path.join(dirSaida, `${dataArg}-story.png`), fonts)
+  const feedPng = arte({ largura: 1080, altura: 1080, e: 1, dados })
+  const storyPng = arte({ largura: 1080, altura: 1920, e: 1.3, dados })
+  await renderizar(feedPng, 1080, 1080, path.join(dirSaida, `${dataArg}-feed.png`), fonts)
+  await renderizar(storyPng, 1080, 1920, path.join(dirSaida, `${dataArg}-story.png`), fonts)
+  await renderizar(feedPng, 1080, 1080, path.join(dirPublico, `${dataArg}-feed.png`), fonts)
+  await renderizar(storyPng, 1080, 1920, path.join(dirPublico, `${dataArg}-story.png`), fonts)
   console.log('Concluído.')
 }
 
