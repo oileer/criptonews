@@ -1,7 +1,7 @@
 // Gera as artes diárias pros posts sociais (IG/FB/Threads) — fundo gelo igual ao site
 // (--bg #fafafa), badges vetoriais Cripto News + e-trade.ai, CTA "link na bio".
 // Uso: node --env-file=.env.local scripts/gen-social-art.mjs [AAAA-MM-DD]
-// Saída: content/social/<data>-feed.png (1080x1080) e <data>-story.png (1080x1920)
+// Saída: content/social/<data>-feed.png (1080x1350, 4:5) e <data>-story.png (1080x1920, 9:16)
 
 import fs from 'node:fs'
 import path from 'node:path'
@@ -268,11 +268,11 @@ async function main() {
   const dirPublico = path.join('public', 'social')
   fs.mkdirSync(dirPublico, { recursive: true })
 
-  const feedPng = arte({ largura: 1080, altura: 1080, e: 1, dados })
-  const storyPng = arte({ largura: 1080, altura: 1920, e: 1.3, dados })
-  await renderizar(feedPng, 1080, 1080, path.join(dirSaida, `${dataArg}-feed.png`), fonts)
+  const feedPng = arte({ largura: 1080, altura: 1350, e: 1.1, dados }) // 4:5 — feed do IG
+  const storyPng = arte({ largura: 1080, altura: 1920, e: 1.3, dados }) // 9:16 — já estava certo
+  await renderizar(feedPng, 1080, 1350, path.join(dirSaida, `${dataArg}-feed.png`), fonts)
   await renderizar(storyPng, 1080, 1920, path.join(dirSaida, `${dataArg}-story.png`), fonts)
-  await renderizar(feedPng, 1080, 1080, path.join(dirPublico, `${dataArg}-feed.png`), fonts)
+  await renderizar(feedPng, 1080, 1350, path.join(dirPublico, `${dataArg}-feed.png`), fonts)
   await renderizar(storyPng, 1080, 1920, path.join(dirPublico, `${dataArg}-story.png`), fonts)
   console.log('Concluído.')
 }
