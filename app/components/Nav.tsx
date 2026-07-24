@@ -1,6 +1,7 @@
 'use client'
 import { dict, type Lang } from '@/lib/i18n'
 import Logo from './Logo'
+import ThemeToggle from './ThemeToggle'
 
 const bannerCopy = {
   pt: {
@@ -95,6 +96,7 @@ export default function Nav({ lang = 'pt' }: { lang?: Lang }) {
         <button onClick={scrollToForm} className="btn-gold" style={{ padding: '10px 20px', fontSize: 14, borderRadius: 999 }}>
           {t.navCta}
         </button>
+        <ThemeToggle />
       </div>
       </nav>
     </div>

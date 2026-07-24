@@ -80,6 +80,12 @@ export default function RootLayout({
     <html lang="pt-BR">
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
+        {/* Aplica o tema salvo ANTES do primeiro paint — sem isso, pisca claro→escuro (FOUC) pra quem já escolheu escuro. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `try{var t=localStorage.getItem('theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}`,
+          }}
+        />
       </head>
       <body>
         {children}

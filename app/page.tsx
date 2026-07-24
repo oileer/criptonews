@@ -1,20 +1,24 @@
-'use client'
 import Nav from './components/Nav'
 import Hero from './components/Hero'
 import HowItWorks from './components/HowItWorks'
 import PartnerCta from './components/PartnerCta'
 import CtaFinal from './components/CtaFinal'
 import Termometro from './components/Termometro'
+import EdicaoDeHoje from './components/EdicaoDeHoje'
+import { listarEdicoes } from '@/lib/edicoes'
 
 export default function Home() {
+  const edicoesCount = listarEdicoes('pt').length
+
   return (
     <main style={{ background: 'var(--bg)', minHeight: '100vh' }}>
       <Nav />
-      <Hero />
-      <HowItWorks />
+      <Hero edicoesCount={edicoesCount} />
       <div style={{ padding: '0 24px 40px' }}>
         <Termometro />
       </div>
+      <EdicaoDeHoje />
+      <HowItWorks />
       <PartnerCta />
       <CtaFinal />
       <footer style={{

@@ -5,7 +5,9 @@ import HowItWorks from '../components/HowItWorks'
 import PartnerCta from '../components/PartnerCta'
 import CtaFinal from '../components/CtaFinal'
 import Termometro from '../components/Termometro'
+import EdicaoDeHoje from '../components/EdicaoDeHoje'
 import { dict } from '@/lib/i18n'
+import { listarEdicoes } from '@/lib/edicoes'
 
 export const metadata: Metadata = {
   title: 'Crypto News — the crypto market in 5 minutes',
@@ -36,14 +38,17 @@ export const metadata: Metadata = {
 }
 
 export default function HomeEn() {
+  const edicoesCount = listarEdicoes('en').length
+
   return (
     <main style={{ background: 'var(--bg)', minHeight: '100vh' }}>
       <Nav lang="en" />
-      <Hero lang="en" />
-      <HowItWorks lang="en" />
+      <Hero lang="en" edicoesCount={edicoesCount} />
       <div style={{ padding: '0 24px 40px' }}>
         <Termometro lang="en" />
       </div>
+      <EdicaoDeHoje lang="en" />
+      <HowItWorks lang="en" />
       <PartnerCta lang="en" />
       <CtaFinal lang="en" />
       <footer style={{

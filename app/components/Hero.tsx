@@ -3,10 +3,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { dict, type Lang } from '@/lib/i18n'
 
-const avatars = ['#f0b429', '#ff8a47', '#111', '#888']
-const initials = ['RF', 'CL', 'DM', 'LT']
-
-export default function Hero({ lang = 'pt' }: { lang?: Lang }) {
+export default function Hero({ lang = 'pt', edicoesCount = 0 }: { lang?: Lang; edicoesCount?: number }) {
   const t = dict[lang]
   const router = useRouter()
   const [email, setEmail] = useState('')
@@ -140,25 +137,15 @@ export default function Hero({ lang = 'pt' }: { lang?: Lang }) {
           <p style={{ marginTop: 12, fontSize: 13, color: '#e05c5c' }}>{t.error}</p>
         )}
 
-        {/* Social proof */}
-        <div className="fade d4" style={{ marginTop: 24, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12 }}>
-          <div style={{ display: 'flex' }}>
-            {avatars.map((bg, i) => (
-              <div key={i} style={{
-                width: 32, height: 32, borderRadius: '50%',
-                background: bg, border: '2px solid var(--white)',
-                marginLeft: i > 0 ? -10 : 0,
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: 10, fontWeight: 700, color: i === 2 ? '#fff' : '#111',
-              }}>
-                {initials[i]}
-              </div>
-            ))}
+        {/* Social proof — número real de edições publicadas, não estimativa de audiência */}
+        {edicoesCount > 0 && (
+          <div className="fade d4" style={{ marginTop: 24, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+            <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--gold)', display: 'inline-block', boxShadow: '0 0 6px var(--gold)' }} />
+            <p style={{ fontSize: 14, color: 'var(--text-secondary)' }}>
+              <strong style={{ color: 'var(--text-primary)' }}>{t.socialProofStrong(edicoesCount)}</strong> {t.socialProof(edicoesCount)}
+            </p>
           </div>
-          <p style={{ fontSize: 14, color: 'var(--text-secondary)' }}>
-            <strong style={{ color: 'var(--text-primary)' }}>{t.socialProofStrong}</strong> {t.socialProof}
-          </p>
-        </div>
+        )}
       </div>
     </section>
   )

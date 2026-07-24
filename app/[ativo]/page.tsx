@@ -76,6 +76,11 @@ export default async function AtivoHojePage({ params }: { params: Promise<{ ativ
 
         <PrecoAtivo par={dados.par} />
         <Termometro />
+        <p style={{ textAlign: 'center', marginTop: -12, marginBottom: 8 }}>
+          <Link href="/mercado" className="gold-text" style={{ fontSize: 14, fontWeight: 600 }}>
+            ver o mercado completo →
+          </Link>
+        </p>
 
         {edicaoHoje && (
           <div style={{ marginTop: 48 }}>

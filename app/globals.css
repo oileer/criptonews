@@ -32,6 +32,31 @@
   --font: 'HelveticaNow', 'Helvetica Neue', Arial, sans-serif;
 }
 
+/* Dark mode — segue a preferência do sistema por padrão; o toggle (Nav)
+   grava a escolha explícita em data-theme, que sempre vence. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0e0e0f;
+    --card-bg: #18181a;
+    --card-border: #2c2c2f;
+    --text-primary: #f2f2f2;
+    --text-secondary: #b8b8b8;
+    --text-muted: #7a7a7a;
+    --white: #1c1c1e;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0e0e0f;
+  --card-bg: #18181a;
+  --card-border: #2c2c2f;
+  --text-primary: #f2f2f2;
+  --text-secondary: #b8b8b8;
+  --text-muted: #7a7a7a;
+  --white: #1c1c1e;
+}
+
+body { transition: background-color 0.2s ease, color 0.2s ease; }
+
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html { scroll-behavior: smooth; }
 
