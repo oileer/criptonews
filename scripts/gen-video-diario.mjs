@@ -13,7 +13,7 @@ import { execFile } from 'node:child_process'
 import { promisify } from 'node:util'
 import path from 'node:path'
 import { sintetizarVoz } from './lib/tts.mjs'
-import { gerarSrt } from './lib/legendas.mjs'
+import { gerarAss } from './lib/legendas.mjs'
 
 const run = promisify(execFile)
 const FFMPEG = process.env.FFMPEG_PATH || path.join(process.env.HOME ?? '', 'opt', 'ffmpeg-current', 'ffmpeg')
@@ -50,7 +50,7 @@ async function main() {
   const dirPublico = path.join('public', 'videos')
   mkdirSync(dirPublico, { recursive: true })
   const arqAudio = path.join(dirSaida, `${dataArg}.mp3`)
-  const arqSrt = path.join(dirSaida, `${dataArg}.srt`)
+  const arqAss = path.join(dirSaida, `${dataArg}.ass`)
   const arqVideo = path.join(dirSaida, `${dataArg}.mp4`)
   const arqVideoPublico = path.join(dirPublico, `${dataArg}.mp4`)
 
@@ -65,17 +65,17 @@ async function main() {
   console.log(`  áudio pronto: ${duracao.toFixed(1)}s`)
 
   console.log('  gerando legendas...')
-  writeFileSync(arqSrt, gerarSrt(narracao, duracao))
+  writeFileSync(arqAss, gerarAss(narracao, duracao))
 
   console.log('  renderizando vídeo (ffmpeg)...')
   // Ken Burns sutil (zoompan lento) na arte de story parada + legenda
-  // queimada (força estilo: fundo semi-opaco atrás do texto pra legibilidade
-  // em qualquer parte da imagem) + áudio narrado.
+  // queimada (estilo e resolução já definidos no .ass — ver lib/legendas.mjs)
+  // + áudio narrado.
   const fps = 30
   const totalFrames = Math.ceil(duracao * fps)
   const filtro = [
     `scale=1080:1920,zoompan=z='min(zoom+0.0006,1.08)':d=${totalFrames}:s=1080x1920:fps=${fps}`,
-    `subtitles=${arqSrt}:force_style='FontName=DejaVu Sans,FontSize=17,Bold=1,PrimaryColour=&H00FFFFFF,BackColour=&H99000000,BorderStyle=4,Outline=0,Shadow=0,MarginV=140,Alignment=2'`,
+    `subtitles=${arqAss}`,
   ].join(',')
 
   await run(FFMPEG, [
