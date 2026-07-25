@@ -1,0 +1,17 @@
+[Script Info]
+ScriptType: v4.00+
+PlayResX: 1080
+PlayResY: 1920
+ScaledBorderAndShadow: yes
+
+[V4+ Styles]
+Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
+Style: Default,DejaVu Sans,56,&H00FFFFFF,&H000000FF,&H00000000,&H20000000,1,0,0,0,100,100,0,0,3,10,0,2,70,70,110,1
+
+[Events]
+Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
+Dialogue: 0,0:00:00.00,0:00:03.81,Default,,0,0,0,,Cripto News, edição de hoje.\NMercado segue defensivo nesta
+Dialogue: 0,0:00:03.81,0:00:07.75,Default,,0,0,0,,quarta. Bitcoin mantém piso em\NUS$ 64,6k, mas altcoins levam
+Dialogue: 0,0:00:07.75,0:00:11.17,Default,,0,0,0,,pancadas piores — sinal\Nclássico de derisco quando o
+Dialogue: 0,0:00:11.17,0:00:14.65,Default,,0,0,0,,medo bate. Fear & Greed caiu\Nde 31 para 28 (puro fear
+Dialogue: 0,0:00:14.65,0:00:16.03,Default,,0,0,0,,mesmo), dominância do

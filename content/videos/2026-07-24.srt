@@ -1,0 +1,12 @@
+1
+00:00:00,000 --> 00:00:02,480
+Cripto News, edição de hoje.
+
+2
+00:00:02,480 --> 00:00:05,757
+Mercado segue defensivo nesta quarta.
+
+3
+00:00:05,757 --> 00:00:16,032
+Bitcoin mantém piso em US$ 64,6k, mas
+altcoins levam pancadas piores — sinal clássico de derisco quando o medo bate.
