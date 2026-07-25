@@ -1,0 +1,17 @@
+[Script Info]
+ScriptType: v4.00+
+PlayResX: 1080
+PlayResY: 1920
+ScaledBorderAndShadow: yes
+
+[V4+ Styles]
+Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
+Style: Default,DejaVu Sans,56,&H00FFFFFF,&H000000FF,&H00000000,&H20000000,1,0,0,0,100,100,0,0,3,10,0,2,70,70,110,1
+
+[Events]
+Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
+Dialogue: 0,0:00:00.00,0:00:05.26,Default,,0,0,0,,Cripto News, edição de hoje.\NQuinta de leve mas
+Dialogue: 0,0:00:05.26,0:00:11.19,Default,,0,0,0,,consistente. Bitcoin cede\N2.30%, ETH -1.90%, SOL toma
+Dialogue: 0,0:00:11.19,0:00:17.90,Default,,0,0,0,,mais porrada com -2.80% em 24h\N— tudo dentro de um padrão de
+Dialogue: 0,0:00:17.90,0:00:24.28,Default,,0,0,0,,correção sem pânico. Market\Ncap recua 1.69%, Fear & Greed
+Dialogue: 0,0:00:24.28,0:00:27.41,Default,,0,0,0,,escorrega de 28 pra 27. A bo
