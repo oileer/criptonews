@@ -1,0 +1,17 @@
+[Script Info]
+ScriptType: v4.00+
+PlayResX: 1080
+PlayResY: 1920
+ScaledBorderAndShadow: yes
+
+[V4+ Styles]
+Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
+Style: Default,DejaVu Sans,56,&H00FFFFFF,&H000000FF,&H00000000,&H20000000,1,0,0,0,100,100,0,0,3,10,0,2,70,70,110,1
+
+[Events]
+Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
+Dialogue: 0,0:00:00.00,0:00:04.72,Default,,0,0,0,,Cripto News, edição de hoje.\NMercado segue consolidado em
+Dialogue: 0,0:00:04.72,0:00:09.19,Default,,0,0,0,,sentimento cauteloso, com BTC\Nestacionado em US$ 64,4k
+Dialogue: 0,0:00:09.19,0:00:14.07,Default,,0,0,0,,(+0,60% em 24h) e Fear & Greed\Nem 26 — sem força expansiva,
+Dialogue: 0,0:00:14.07,0:00:18.71,Default,,0,0,0,,mas sem pânico agudo. Volume\Nde stablecoins robusto (US$
+Dialogue: 0,0:00:18.71,0:00:20.28,Default,,0,0,0,,256,5B) mantém liqu
