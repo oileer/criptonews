@@ -25,25 +25,28 @@ etapa "git-pull" git pull --rebase --autostash origin main
 etapa "newsletter" npm run send
 etapa "artes-sociais" node --env-file=.env.local scripts/gen-social-art.mjs
 
-# Vídeo diário (TTS + ffmpeg) depende da arte de story já existir — roda
-# depois das artes-sociais. Falha aqui não trava o resto (post-social segue
-# sem reels se o vídeo não existir).
-if [ -f scripts/gen-video-diario.mjs ]; then
-  etapa "video-diario" node --env-file=.env.local scripts/gen-video-diario.mjs
-fi
+# Vídeo diário (TTS + ffmpeg + Reels/YouTube) DESATIVADO no cron a partir de
+# 27/07 — resultado visual reprovado (ver docs/STATUS-2026-07-24.md, seção
+# 25/07). Fica só feed+story+Threads automáticos até o fluxo de vídeo ser
+# reavaliado. Rodar manualmente pra testar: node --env-file=.env.local
+# scripts/gen-video-diario.mjs
+# if [ -f scripts/gen-video-diario.mjs ]; then
+#   etapa "video-diario" node --env-file=.env.local scripts/gen-video-diario.mjs
+# fi
 
-etapa "git-add" git add content/social/ public/social/ content/videos/ public/videos/
-etapa "git-commit" git commit -m "Artes e vídeo do dia $(date +%F)"
+etapa "git-add" git add content/social/ public/social/
+etapa "git-commit" git commit -m "Artes sociais $(date +%F)"
 etapa "git-push" git push origin main
 
-# post-social/upload-youtube dependem da mídia já estar pública (Vercel
-# rebuilda após o push acima) — rodam por último, cada um espera a URL ficar
-# acessível antes de publicar.
+# post-social depende da imagem já estar pública (Vercel rebuilda após o push
+# acima) — roda por último e ele mesmo espera a URL ficar acessível. Sem
+# vídeo do dia, pula o Reels sozinho (checa existsSync antes de tentar).
 if [ -f scripts/post-social.mjs ]; then
   etapa "post-social" node --env-file=.env.local scripts/post-social.mjs
 fi
-if [ -f scripts/upload-youtube.mjs ] && [ -f content/videos/$(date +%F).mp4 ]; then
-  etapa "upload-youtube" node --env-file=.env.local scripts/upload-youtube.mjs
-fi
+# upload-youtube DESATIVADO junto com o vídeo — ver comentário acima.
+# if [ -f scripts/upload-youtube.mjs ] && [ -f content/videos/$(date +%F).mp4 ]; then
+#   etapa "upload-youtube" node --env-file=.env.local scripts/upload-youtube.mjs
+# fi
 
 grep -q FALHA "$STATUS_FILE" && echo "run-daily terminou com falhas: $(grep FALHA "$STATUS_FILE" | tr '\n' ' ')" >> "$LOG"
