@@ -1,0 +1,17 @@
+[Script Info]
+ScriptType: v4.00+
+PlayResX: 1080
+PlayResY: 1920
+ScaledBorderAndShadow: yes
+
+[V4+ Styles]
+Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
+Style: Default,DejaVu Sans,56,&H00FFFFFF,&H000000FF,&H00000000,&H20000000,1,0,0,0,100,100,0,0,3,10,0,2,70,70,110,1
+
+[Events]
+Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
+Dialogue: 0,0:00:00.00,0:00:04.09,Default,,0,0,0,,Cripto News, edição de hoje.\NSexta-feira começou com clima
+Dialogue: 0,0:00:04.09,0:00:07.47,Default,,0,0,0,,de alívio geopolítico — a\Ntrégua entre EUA e Irã
+Dialogue: 0,0:00:07.47,0:00:11.27,Default,,0,0,0,,arrefeceu os medos de escalada\Nno Oriente Médio e óleo
+Dialogue: 0,0:00:11.27,0:00:15.28,Default,,0,0,0,,despencou 5-7%, abrindo espaço\Npro risk-on voltar à mesa.
+Dialogue: 0,0:00:15.28,0:00:17.26,Default,,0,0,0,,Bitcoin consolidando na faix
