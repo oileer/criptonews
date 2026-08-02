@@ -27,7 +27,10 @@ async function checarEdicaoDeHoje() {
   const hoje = hojeSP()
   const arq = path.join(process.cwd(), 'content', 'edicoes', `${hoje}.json`)
   if (!fs.existsSync(arq)) {
-    return `edição de hoje (${hoje}) não foi publicada até ${Math.floor(minutosDoDia / 60)}h${String(minutosDoDia % 60).padStart(2, '0')}`
+    return {
+      tipo: 'edicao_atrasada',
+      mensagem: `edição de hoje (${hoje}) não foi publicada até ${Math.floor(minutosDoDia / 60)}h${String(minutosDoDia % 60).padStart(2, '0')}`,
+    }
   }
   return null
 }
@@ -37,15 +40,15 @@ async function checarSnapshotEtrade() {
     const res = await fetch(`${ETRADE_API}/v1/market/overview`, {
       headers: { 'x-api-key': process.env.ETRADE_API_KEY ?? '' },
     })
-    if (!res.ok) return `etrade-api respondeu ${res.status} em /v1/market/overview`
+    if (!res.ok) return { tipo: 'etrade_http_erro', mensagem: `etrade-api respondeu ${res.status} em /v1/market/overview` }
     const body = await res.json()
     const ts = body?.timestamp || body?.updatedAt || body?.atualizadoEm
     if (!ts) return null // sem timestamp no payload, não dá pra checar frescor
     const idadeMin = (Date.now() - new Date(ts).getTime()) / 60000
-    if (idadeMin > 30) return `snapshot do e-trade.ai com ${Math.round(idadeMin)}min de atraso`
+    if (idadeMin > 30) return { tipo: 'etrade_snapshot_velho', mensagem: `snapshot do e-trade.ai com ${Math.round(idadeMin)}min de atraso` }
     return null
   } catch (e) {
-    return `etrade-api inacessível: ${e.message}`
+    return { tipo: 'etrade_inacessivel', mensagem: `etrade-api inacessível: ${e.message}` }
   }
 }
 
@@ -63,11 +66,11 @@ function salvarEstado(estado) {
 
 async function alertar(problemas) {
   if (!RESEND_API_KEY) {
-    console.error('[watchdog] RESEND_API_KEY ausente, não deu pra alertar:', problemas)
+    console.error('[watchdog] RESEND_API_KEY ausente, não deu pra alertar:', problemas.map((p) => p.mensagem))
     return
   }
   const html = `<p><strong>Watchdog Cripto News / e-trade.ai</strong></p><ul>${problemas
-    .map((p) => `<li>${p}</li>`)
+    .map((p) => `<li>${p.mensagem}</li>`)
     .join('')}</ul><p>Checado às ${new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' })}.</p>`
 
   const res = await fetch('https://api.resend.com/emails', {
@@ -88,9 +91,10 @@ async function main() {
 
   const hoje = hojeSP()
   const estado = lerEstado()
-  const chave = problemas.sort().join('|')
+  // dedup por TIPO do problema, não pela mensagem (que muda a cada checagem
+  // por causa dos minutos de atraso) — assim so alerta uma vez por problema/dia
+  const chave = problemas.map((p) => p.tipo).sort().join('|')
 
-  // só alerta uma vez por problema/dia, pra não spammar a cada 10min
   if (problemas.length > 0 && !(estado.dia === hoje && estado.ultimoAlerta === chave)) {
     await alertar(problemas)
     salvarEstado({ dia: hoje, ultimoAlerta: chave })
@@ -98,7 +102,7 @@ async function main() {
     salvarEstado({ dia: hoje, ultimoAlerta: '' })
   }
 
-  if (problemas.length) console.error('[watchdog]', problemas.join(' | '))
+  if (problemas.length) console.error('[watchdog]', problemas.map((p) => p.mensagem).join(' | '))
   else console.log('[watchdog] ok')
 }
 

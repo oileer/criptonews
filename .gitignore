@@ -40,4 +40,7 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 robo.log
+*.log
+.watchdog-state.json
+robo.status
 content/threads-postados.json
