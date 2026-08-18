@@ -26,15 +26,18 @@ const LANGS = {
     footer: 'Você recebe porque se cadastrou na Cripto News.',
     unsubscribe: 'Cancelar inscrição',
     system: `Você é o redator da Cripto News, newsletter diária em português para traders brasileiros de criptomoedas. Tom direto, opinativo, com gíria de trader, sem hype. Sempre traduza a notícia em "o que isso significa pra quem opera".`,
-    prompt: (agora, dados, hoje) => `Agora são ${agora} (horário de Brasília).
+    prompt: (agora, dados, hoje, manchetes) => `Agora são ${agora} (horário de Brasília).
 
-DADOS DE MERCADO EM TEMPO REAL (fonte oficial — use SOMENTE estes números para preços, variações e sentimento; NUNCA cite preço vindo de notícia ou busca):
+DADOS DE MERCADO EM TEMPO REAL (fonte oficial — use SOMENTE estes números para preços, variações e sentimento; NUNCA cite preço vindo de notícia):
 ${dados}
 
-Pesquise as notícias mais importantes do mercado cripto das ÚLTIMAS 24 HORAS (Bitcoin, Ethereum, altcoins, regulação, instituições, ETFs, funding rate). Regras da pesquisa:
-- Verifique a data de publicação de cada notícia; descarte qualquer coisa com mais de 24-36h ou sem data clara
+MANCHETES REAIS das últimas horas (Bitcoin, Ethereum, altcoins, regulação, instituições, ETFs), colhidas via RSS — escolha as mais relevantes pra virarem os destaques do dia:
+${manchetes}
+
+Regras:
 - Notícias de preço/cotação devem ser ignoradas — os preços válidos são só os dos dados acima
-- Se uma notícia contradisser os dados de mercado acima, os dados acima prevalecem
+- Se uma manchete contradisser os dados de mercado acima, os dados acima prevalecem
+- Se a lista de manchetes vier vazia ou pouco relevante, escreva a seção DESTAQUES DO DIA com leitura técnica/de sentimento em cima dos dados de mercado, sem inventar notícia
 
 Escreva a edição de hoje (${hoje}) da Cripto News.
 
@@ -63,15 +66,18 @@ Estrutura obrigatória (responda APENAS com o HTML interno, sem \`\`\`, sem <htm
     footer: 'You are receiving this because you subscribed to Crypto News.',
     unsubscribe: 'Unsubscribe',
     system: `You are the writer of Crypto News, a daily English-language newsletter for crypto traders. Direct, opinionated tone with trader slang, no hype. Always translate each story into "what this means for your trading".`,
-    prompt: (agora, dados, hoje) => `Current time: ${agora} (UTC-3).
+    prompt: (agora, dados, hoje, manchetes) => `Current time: ${agora} (UTC-3).
 
-REAL-TIME MARKET DATA (official source — use ONLY these numbers for prices, changes and sentiment; NEVER quote a price from a news article or search result):
+REAL-TIME MARKET DATA (official source — use ONLY these numbers for prices, changes and sentiment; NEVER quote a price from a news article):
 ${dados}
 
-Search for the most important crypto market news of the LAST 24 HOURS (Bitcoin, Ethereum, altcoins, regulation, institutions, ETFs, funding rates). Search rules:
-- Check the publication date of every story; discard anything older than 24-36h or without a clear date
+REAL HEADLINES from the last few hours (Bitcoin, Ethereum, altcoins, regulation, institutions, ETFs), collected via RSS — pick the most relevant ones as today's highlights:
+${manchetes}
+
+Rules:
 - Ignore price/quote stories — the only valid prices are in the data above
-- If a story contradicts the market data above, the data above prevails
+- If a headline contradicts the market data above, the data above prevails
+- If the headline list is empty or not very relevant, write TODAY'S HIGHLIGHTS as a technical/sentiment read of the market data instead, without inventing news
 
 Write today's edition (${hoje}) of Crypto News.
 
@@ -143,6 +149,74 @@ async function buscarTickers() {
   }
 }
 
+// Manchetes reais via RSS (grátis) — substitui a tool paga 'web_search' do
+// Claude, que injetava conteúdo de página inteira no contexto a cada busca
+// (5 buscas x 2 idiomas/dia) e era o maior custo de crédito do projeto.
+// Mesmas fontes já usadas em scripts/threads-news.mjs.
+const FEEDS_NOTICIAS = [
+  'https://www.coindesk.com/arc/outboundfeeds/rss/',
+  'https://cointelegraph.com/rss',
+  'https://decrypt.co/feed',
+  'https://cryptoslate.com/feed/',
+  'https://www.theblock.co/rss.xml',
+  'https://bitcoinmagazine.com/feed',
+  'https://news.bitcoin.com/feed/',
+  'https://livecoins.com.br/feed/',
+  'https://portaldobitcoin.uol.com.br/feed/',
+  'https://www.criptofacil.com/feed/',
+]
+const JANELA_MANCHETES_HORAS = 24
+
+function decodeXmlEntities(s) {
+  return s
+    .replace(/<!\[CDATA\[(.*?)\]\]>/gs, '$1')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#0?39;/g, "'")
+    .trim()
+}
+
+function parseRss(xml) {
+  const itens = []
+  for (const bloco of xml.matchAll(/<item>([\s\S]*?)<\/item>/g)) {
+    const item = bloco[1]
+    const titulo = item.match(/<title>([\s\S]*?)<\/title>/)?.[1]
+    const pubDate = item.match(/<pubDate>([\s\S]*?)<\/pubDate>/)?.[1]
+    if (!titulo || !pubDate) continue
+    const data = new Date(decodeXmlEntities(pubDate))
+    if (isNaN(data.getTime())) continue
+    itens.push({ titulo: decodeXmlEntities(titulo), data })
+  }
+  return itens
+}
+
+async function buscarManchetes() {
+  const desde = Date.now() - JANELA_MANCHETES_HORAS * 60 * 60 * 1000
+  const resultados = await Promise.allSettled(
+    FEEDS_NOTICIAS.map((url) =>
+      fetch(url, { headers: { 'User-Agent': 'Mozilla/5.0' }, signal: AbortSignal.timeout(10000) }).then((r) =>
+        r.ok ? r.text() : Promise.reject(r.status)
+      )
+    )
+  )
+  const manchetes = []
+  for (const r of resultados) {
+    if (r.status !== 'fulfilled') continue
+    for (const item of parseRss(r.value)) {
+      if (item.data.getTime() >= desde) manchetes.push(item)
+    }
+  }
+  const vistos = new Set()
+  return manchetes
+    .filter((m) => (vistos.has(m.titulo) ? false : (vistos.add(m.titulo), true)))
+    .sort((a, b) => b.data - a.data)
+    .slice(0, 25)
+    .map((m) => `- ${m.titulo}`)
+    .join('\n')
+}
+
 function buscarDadosMercadoDireto(tickers) {
   if (!tickers) throw new Error('sem dados de mercado (CoinGecko e API e-trade fora)')
   const linhas = tickers.moedas.map(
@@ -158,19 +232,16 @@ function buscarDadosMercadoDireto(tickers) {
   return { dados: linhas.join('\n'), tickers, termometro: null }
 }
 
-async function gerarConteudo(lang, dadosMercado) {
+async function gerarConteudo(lang, dadosMercado, manchetes) {
   const cfg = LANGS[lang]
   const client = new Anthropic()
   const agora = new Date().toLocaleString(lang === 'en' ? 'en-US' : 'pt-BR', { timeZone: 'America/Sao_Paulo' })
 
   const stream = client.messages.stream({
-    // Haiku 4.5 para testes (mais barato); em produção troque por 'claude-sonnet-5'
-    // (Sonnet usa a busca 'web_search_20260209' e aceita thinking adaptive)
     model: 'claude-haiku-4-5',
-    max_tokens: 16000,
-    tools: [{ type: 'web_search_20250305', name: 'web_search', max_uses: 5 }],
+    max_tokens: 4000,
     system: `${cfg.system}\n\n${cfg.regras}`,
-    messages: [{ role: 'user', content: cfg.prompt(agora, dadosMercado, cfg.dataLocal) }],
+    messages: [{ role: 'user', content: cfg.prompt(agora, dadosMercado, cfg.dataLocal, manchetes || '(nenhuma manchete relevante encontrada)') }],
   })
 
   const msg = await stream.finalMessage()
@@ -384,13 +455,20 @@ async function main() {
     throw new Error('RESEND_API_KEY / RESEND_AUDIENCE_ID / RESEND_AUDIENCE_ID_EN ausentes')
   if (!process.env.ANTHROPIC_API_KEY) throw new Error('ANTHROPIC_API_KEY ausente')
 
+  console.log('\nBuscando manchetes via RSS (grátis, mesmas fontes pra PT e EN)...')
+  const manchetes = await buscarManchetes().catch((e) => {
+    console.warn('  falha ao buscar manchetes:', e.message)
+    return ''
+  })
+  console.log(manchetes || '  (nenhuma manchete na janela)')
+
   for (const lang of ['pt', 'en']) {
     const cfg = LANGS[lang]
     console.log(`\n[${lang.toUpperCase()}] Buscando dados de mercado em tempo real...`)
     const mercado = await buscarDadosMercado(lang)
     console.log(mercado.dados)
     console.log(`\n[${lang.toUpperCase()}] Gerando edição de ${cfg.dataLocal}...`)
-    const conteudo = await gerarConteudo(lang, mercado.dados)
+    const conteudo = await gerarConteudo(lang, mercado.dados, manchetes)
 
     if (DRY_RUN) {
       console.log(`\n--- DRY RUN [${lang.toUpperCase()}] ---\n`)
